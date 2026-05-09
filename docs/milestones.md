@@ -10,7 +10,7 @@ so each builds on the last. No V1 milestone history applies.
 ## Current Phase
 
 Status: Implementation. Milestones 0-6 complete. Milestone 7 (AI
-Integration) is next.
+Integration) is **in progress**.
 
 ## Milestone Authoring Rules
 
@@ -419,6 +419,90 @@ Owner: Chief Backend and Data Agent.
 Goal: Built-in AI synthesis and external AI bridge.
 
 Dependencies: Milestone 6.
+
+Status: **In progress.** Started 2026-05-09. Implementation landed the
+same day. The user has indicated they will not test live API calls
+until later — once they do and the configured provider successfully
+generates cards, this milestone can be promoted to **Complete**.
+
+Tech choices (see `docs/decision-log.md`):
+
+- AI provider: Anthropic only at launch (`@anthropic-ai/sdk` v0.x),
+  behind an internal `AiProviderAdapter` interface so OpenAI can drop
+  in later.
+- Default model: `claude-opus-4-7` with `thinking: {type: "adaptive"}`
+  and `output_config: {effort: "medium"}` per the `claude-api` skill.
+- API key storage: Electron `safeStorage` (OS keychain — DPAPI on
+  Windows). Plaintext keys are never written to disk; if encryption
+  is unavailable the Settings UI surfaces the error rather than
+  falling back to plaintext.
+- Synthesis card generation: structured outputs via Zod schemas with
+  `messages.parse()`.
+- Prompt caching: `cache_control: {type: "ephemeral"}` on the frozen
+  system prompts so repeat synthesis / narrative requests are cheap.
+
+Work to date:
+
+- App config (`~/.quarterline/config.json`) gained an `ai` field with
+  `{provider, encryptedApiKey, model}`. The encrypted key is stored
+  base64-encoded; only decrypted in-process when dispatching a
+  request.
+- New main-process modules:
+  - `ai-config.ts` — read/write/clear AI config; surfaces
+    `encryptionAvailable`.
+  - `ai-provider.ts` — the adapter interface + shared types
+    (`SynthesisCardDraft`, `SynthesisGenerationInput/Result`,
+    `NarrativeGenerationInput/Result`).
+  - `ai-anthropic.ts` — Anthropic adapter. Implements `testConnection`,
+    `generateSynthesis` (Zod-typed structured output of 3–5 cards
+    matching the CBRE-style synthesis taxonomy), and
+    `generateNarrative` (markdown for a named report section). Uses
+    typed exception classes (`Anthropic.AuthenticationError`,
+    `RateLimitError`, etc.) for clean error surfacing.
+  - `ai-dispatcher.ts` — picks the configured adapter, gathers
+    workspace data from SQLite, calls the adapter, inserts cards
+    into `ai_synthesis_card` with `source = 'built-in-ai'`. Also
+    exposes narrative generation (no UI yet; ready for M8 report
+    assembly to call).
+  - `external-bridge.ts` — scans `narratives/` and `notes/` for
+    markdown changes since the last acknowledged scan. Tracks state
+    in `<workspace>/.quarterline/last-scan.json` (sha256 + mtime +
+    size per file). Emits created / modified / deleted events with
+    text previews.
+- New IPC channels (and preload bindings): `ai:get-config`,
+  `ai:save-config`, `ai:clear-config`, `ai:test-connection`,
+  `ai:generate-synthesis`, `bridge:scan-changes`,
+  `bridge:ack-changes`.
+- Renderer:
+  - `SettingsView.tsx` — provider config form (API key + model),
+    test-connection button, clear-key button, status panel showing
+    encryption availability + key status. Routed via the existing
+    sidebar `Settings` nav item.
+  - `SynthesisCards.tsx` — when an AI provider is configured, the
+    empty state and the add-tile both show a `✦ Generate` button
+    that calls the dispatcher and refreshes the card list.
+    Generation errors render in a banner above the tier row.
+  - `ExternalChangesBanner.tsx` — scans on workspace open and on
+    window focus; renders a banner above the workspace area listing
+    created / modified / deleted markdown files in `narratives/`
+    and `notes/` with previews. "Acknowledge all" calls
+    `bridge:ack-changes`, snapshotting the current state.
+- Verified: `npm run build` clean, `npx tsc --noEmit` clean for both
+  tsconfigs, `npm run smoke-test` 32/32 (data layer untouched).
+
+Pending verification (live API call by user):
+
+- Open Settings → AI Provider, paste an Anthropic API key, save.
+  Expect: success banner; status changes to "◉ Yes (encrypted)".
+- Click "Test connection" — expect success banner.
+- In Portfolio view, click `✦ Generate` on the synthesis card tier.
+  Expect: 3–5 cards appear, each with `source = 'built-in-ai'` and
+  cited numbers from the imported Atlanta market stats.
+- Externally edit a file under
+  `<workspace>/narratives/market-overview.md` (e.g. via Claude
+  Desktop or VS Code), then refocus the QuarterlineV2 window.
+  Expect: external-changes banner appears with the diff preview.
+  Click "Acknowledge all" to clear it.
 
 Scope:
 

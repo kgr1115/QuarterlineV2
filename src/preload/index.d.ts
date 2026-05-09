@@ -1,6 +1,11 @@
 import type {
+  AiConfigPublic,
+  AiConfigSaveInput,
+  AiConnectionResult,
+  AiSynthesisGenerationResult,
   CsvImportSummary,
   DbStatusResult,
+  ExternalChangeScanResult,
   HeadlineMetrics,
   JsonImportSummary,
   LeaseRow,
@@ -67,6 +72,17 @@ declare global {
           moduleRef: string,
           section?: string
         ) => Promise<boolean>
+      }
+      ai: {
+        getConfig: () => Promise<AiConfigPublic>
+        saveConfig: (input: AiConfigSaveInput) => Promise<AiConfigPublic>
+        clearConfig: () => Promise<AiConfigPublic>
+        testConnection: () => Promise<AiConnectionResult>
+        generateSynthesis: () => Promise<AiSynthesisGenerationResult>
+      }
+      bridge: {
+        scanChanges: () => Promise<ExternalChangeScanResult>
+        ackChanges: () => Promise<null>
       }
     }
   }

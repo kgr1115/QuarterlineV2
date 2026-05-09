@@ -5,42 +5,41 @@ Date: 2026-05-09
 ## Current State
 
 - Milestones 0-6: **Complete.**
-- Milestone 7 (AI Integration): **Next.**
+- Milestone 7 (AI Integration): **In progress** — implementation landed,
+  pending live API call by the user.
 
-The Portfolio view now renders six real modules driven by imported data:
-key metrics banner, AI synthesis cards (manual-author path), 2D Leaflet
-market map with submarket polygons, stacking plan with occupancy
-coloring, CBRE-style financial table, and a what-if scenario panel with
-ECharts dual-axis chart. Pin-to-report buttons register modules in
-`report_pin` for the M8 assembly. Workspaces persist; data layer is
-covered by `npm run smoke-test`.
+The Portfolio view now offers built-in AI synthesis card generation
+through Anthropic (`claude-opus-4-7` by default), with the API key
+encrypted via Electron's `safeStorage`. The external AI bridge detects
+changes to `narratives/` and `notes/` markdown files on focus and shows
+a diff-preview banner. The data layer is unchanged and still covered by
+`npm run smoke-test` (32/32).
 
 ## Immediate Priorities
 
-1. **Begin Milestone 7 (AI Integration).** Two paths:
-   - **Built-in AI** (main process):
-     - Settings UI for provider selection (Anthropic, OpenAI) and API key.
-     - Settings stored locally per app, not per workspace; never written
-       to the workspace folder.
-     - Generate synthesis cards from market data (uses the same
-       `ai_synthesis_card` schema; sets `source = 'built-in-ai'`).
-     - Generate narrative drafts for report sections (writes to
-       `narratives/<section>.md`).
-     - Graceful degradation when no provider is configured (modules
-       continue to work with the manual-author path).
-   - **External AI bridge**:
-     - The folder contract already exists (WORKSPACE.md + data/*.json).
-     - Add external change detection: on focus / refresh, scan
-       `narratives/` and `notes/` for files modified externally since
-       the last app-managed save.
-     - Diff preview + accept/reject UI for imported narratives.
+1. **Live-test the AI integration whenever ready.**
+   - Open the Atlanta workspace.
+   - Settings → AI Provider → paste an Anthropic API key, save.
+   - "Test connection" → expect success.
+   - Portfolio → click `✦ Generate` on the synthesis tier → expect
+     3–5 cards from the imported market data.
+   - Externally edit `narratives/market-overview.md` → refocus the app
+     → expect the external-changes banner with the diff preview.
+   - If clean, promote M7 to **Complete** in `docs/milestones.md` and
+     start M8.
 
-2. **Decisions to make as M7 starts:**
-   - Anthropic SDK vs. OpenAI SDK first (or both via a small adapter).
-   - Where to store the API key (Electron `safeStorage` keychain vs.
-     `~/.quarterline/config.json` plaintext). Strongly favor `safeStorage`.
-   - Synthesis card prompt design — what data we send, what shape we
-     expect back.
+2. **Begin Milestone 8 (Report Assembly and Export)** at any time —
+   the data and AI layers are stable and M8 can land in parallel with
+   M7's live verification.
+   - Report assembly panel (sidebar or drawer): list pinned modules
+     and narrative sections in order.
+   - Section ordering via drag-and-drop or move-up/move-down.
+   - Narrative editor: inline markdown for report sections (the AI
+     dispatcher already exposes `generateNarrative` for the
+     "Generate with AI" affordance).
+   - Exhibit embedding: charts, tables, maps as static images / HTML.
+   - Report preview, PDF export via Chromium print-to-PDF, output to
+     `<workspace>/exports/`.
 
 ## Open Decisions Still to Resolve
 
@@ -51,25 +50,26 @@ covered by `npm run smoke-test`.
 ## What Exists
 
 - Electron app shell: main / preload / renderer split.
-- Workspace lifecycle: create / list / open / close / switch /
-  restart-restore.
-- Per-workspace SQLite with migration runner; tables for `workspace`,
-  `market_statistic`, `submarket_statistic`, `property`, `lease`,
-  `source_file`, `ai_synthesis_card`, `scenario`, `report_pin`.
-- CSV import (`csv-parse`) and JSON import for properties + leases.
-- Source file ingestion with sha256 dedup and confidentiality flag.
-- Data export to `data/*.json` (matches `docs/ai-bridge-spec.md`).
+- Workspace lifecycle, multi-workspace persistence, restart-restore.
+- Per-workspace SQLite with migration runner.
+- CSV / JSON import, source file ingestion (sha256 dedup).
+- Data export to `data/*.json` matching `docs/ai-bridge-spec.md`.
 - WORKSPACE.md manifest with auto-generated "Current Data Summary".
-- Renderer:
-  - Workspace context, sidebar routing.
-  - Data Studio view with five sub-tabs and import actions.
-  - Portfolio view with six analysis modules:
-    KeyMetricsBanner, SynthesisCards (manual-author), MarketMap
-    (Leaflet + OSM), StackingPlan, FinancialTable (CBRE-style),
-    ScenarioControls (ECharts dual-axis).
-  - Pin-to-report on each module, persisted in `report_pin`.
-- Sample import fixtures and Atlanta submarket GeoJSON under
-  `docs/reference-artifacts/samples/`.
-- Automated smoke test: `npm run smoke-test` (Electron-runtime, 31/31)
-  covers the data path end-to-end.
+- Renderer: workspace context, sidebar routing (Portfolio / Data
+  Studio / Settings), Data Studio (5 sub-tabs + imports), Portfolio
+  with six analysis modules (key-metrics banner, AI synthesis cards,
+  Leaflet 2D market map, stacking plan, CBRE-style financial table,
+  ECharts dual-axis scenario panel), Settings page for AI provider.
+- AI integration:
+  - Anthropic adapter (`claude-opus-4-7` default, adaptive thinking,
+    `effort: medium`, prompt caching).
+  - Adapter interface for future OpenAI / others.
+  - API key encrypted via Electron `safeStorage`.
+  - Synthesis card generation via structured outputs (Zod schemas).
+  - Narrative generation API ready for M8.
+  - External AI bridge change detection on `narratives/` and
+    `notes/` with diff previews and acknowledge-all.
+- Pin-to-report wired to `report_pin` table for M8 assembly.
+- Sample fixtures + Atlanta submarket GeoJSON.
+- Automated smoke test: `npm run smoke-test` (32/32).
 - ESLint + Prettier, Windows packaging via electron-builder.

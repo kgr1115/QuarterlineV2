@@ -2,6 +2,11 @@ import { BrowserWindow, dialog, ipcMain } from 'electron'
 import { readFileSync } from 'fs'
 import { IpcChannels } from '../shared/ipc-channels'
 import type {
+  AiConfigPublic,
+  AiConfigSaveInput,
+  AiConnectionResult,
+  AiSynthesisGenerationResult,
+  ExternalChangeScanResult,
   HeadlineMetrics,
   LeaseRow,
   MarketStatRow,
@@ -16,6 +21,19 @@ import type {
   WindowState,
   WorkspaceCreateInput
 } from '../shared/ipc-channels'
+import {
+  clearAiConfig,
+  readAiConfig,
+  writeAiConfig
+} from './ai-config'
+import {
+  generateSynthesisForWorkspace,
+  testActiveProviderConnection
+} from './ai-dispatcher'
+import {
+  acknowledgeExternalChanges,
+  scanExternalChanges
+} from './external-bridge'
 import { getWorkspaceDbPath } from './paths'
 import { readAppConfig, updateAppConfig } from './app-config'
 import {
@@ -616,6 +634,60 @@ export function registerIpcHandlers(): void {
       section: row.section,
       createdAt: row.created_at
     }))
+  })
+
+  ipcMain.handle(IpcChannels.AI_GET_CONFIG, (): AiConfigPublic => readAiConfig())
+
+  ipcMain.handle(
+    IpcChannels.AI_SAVE_CONFIG,
+    (_event, input: AiConfigSaveInput): AiConfigPublic => writeAiConfig(input)
+  )
+
+  ipcMain.handle(IpcChannels.AI_CLEAR_CONFIG, (): AiConfigPublic => clearAiConfig())
+
+  ipcMain.handle(
+    IpcChannels.AI_TEST_CONNECTION,
+    async (): Promise<AiConnectionResult> => testActiveProviderConnection()
+  )
+
+  ipcMain.handle(
+    IpcChannels.AI_GENERATE_SYNTHESIS,
+    async (): Promise<AiSynthesisGenerationResult> => {
+      try {
+        const { db, workspace } = requireActive()
+        const result = await generateSynthesisForWorkspace(db!, workspace!)
+        return { ok: true, inserted: result.inserted, usage: result.usage }
+      } catch (err) {
+        return {
+          ok: false,
+          message: err instanceof Error ? err.message : 'Unknown error.'
+        }
+      }
+    }
+  )
+
+  ipcMain.handle(
+    IpcChannels.BRIDGE_SCAN_CHANGES,
+    (): ExternalChangeScanResult => {
+      const { workspace } = requireActive()
+      const result = scanExternalChanges(workspace!.id)
+      return {
+        scannedAt: result.scannedAt,
+        changes: result.changes.map((c) => ({
+          relativePath: c.relativePath,
+          status: c.status,
+          modifiedAt: c.modifiedAt,
+          sizeBytes: c.sizeBytes,
+          preview: c.preview
+        }))
+      }
+    }
+  )
+
+  ipcMain.handle(IpcChannels.BRIDGE_ACK_CHANGES, (): null => {
+    const { workspace } = requireActive()
+    acknowledgeExternalChanges(workspace!.id)
+    return null
   })
 
   ipcMain.handle(

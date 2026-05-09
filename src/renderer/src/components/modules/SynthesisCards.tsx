@@ -126,14 +126,21 @@ export function SynthesisCards() {
   const { current } = useWorkspace()
   const [cards, setCards] = useState<SynthesisCard[]>([])
   const [adding, setAdding] = useState(false)
+  const [generating, setGenerating] = useState(false)
+  const [generationError, setGenerationError] = useState<string | null>(null)
+  const [aiConfigured, setAiConfigured] = useState(false)
 
   const refresh = useCallback(async () => {
     if (!current) {
       setCards([])
       return
     }
-    const list = await window.quarterline.analysis.listSynthesis()
+    const [list, cfg] = await Promise.all([
+      window.quarterline.analysis.listSynthesis(),
+      window.quarterline.ai.getConfig()
+    ])
     setCards(list)
+    setAiConfigured(cfg.hasKey)
   }, [current])
 
   useEffect(() => {
@@ -157,67 +164,116 @@ export function SynthesisCards() {
     await refresh()
   }
 
+  const onGenerate = async () => {
+    if (generating) return
+    setGenerating(true)
+    setGenerationError(null)
+    try {
+      const result = await window.quarterline.ai.generateSynthesis()
+      if (!result.ok) {
+        setGenerationError(result.message ?? 'AI generation failed.')
+      } else {
+        await refresh()
+      }
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const generateButton = aiConfigured ? (
+    <button
+      type="button"
+      className="synthesis-add-btn"
+      onClick={onGenerate}
+      disabled={generating}
+    >
+      {generating ? 'Generating…' : '✦ Generate'}
+    </button>
+  ) : null
+
   if (cards.length === 0 && !adding) {
     return (
-      <div className="tier-row cols-3">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="module-card synthesis-empty-card">
-            <div className="module-header">
-              <span className="module-title">AI Synthesis</span>
-              {i === 0 && (
-                <button
-                  type="button"
-                  className="synthesis-add-btn"
-                  onClick={() => setAdding(true)}
-                >
-                  + Add
-                </button>
-              )}
-            </div>
-            <div className="module-body">
-              <div className="synthesis-empty-text">
-                {i === 0
-                  ? 'No synthesis cards yet. Add one manually here, or wait for M7 to wire built-in AI generation.'
-                  : i === 1
-                    ? 'External AI tools can also write synthesis to narratives/ — see WORKSPACE.md.'
-                    : 'Cards drive the report cover narrative. Pin to include in assembly.'}
+      <>
+        {generationError && (
+          <div className="data-studio-banner data-studio-banner-error">
+            {generationError}
+          </div>
+        )}
+        <div className="tier-row cols-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="module-card synthesis-empty-card">
+              <div className="module-header">
+                <span className="module-title">AI Synthesis</span>
+                {i === 0 && (
+                  <div className="synthesis-empty-actions">
+                    {generateButton}
+                    <button
+                      type="button"
+                      className="synthesis-add-btn"
+                      onClick={() => setAdding(true)}
+                    >
+                      + Add
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="module-body">
+                <div className="synthesis-empty-text">
+                  {i === 0
+                    ? aiConfigured
+                      ? 'No synthesis cards yet. Click ✦ Generate to draft cards from imported market data, or + Add to author one manually.'
+                      : 'No synthesis cards yet. Configure an AI provider in Settings to generate cards automatically, or add one manually.'
+                    : i === 1
+                      ? 'External AI tools can also write synthesis to narratives/ — see WORKSPACE.md.'
+                      : 'Cards drive the report cover narrative. Pin to include in assembly.'}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </>
     )
   }
 
   return (
-    <div className="tier-row cols-3">
-      {adding ? (
-        <div className="module-card">
-          <div className="module-header">
-            <span className="module-title">New synthesis card</span>
-          </div>
-          <div className="module-body">
-            <CardForm onSubmit={onSubmit} onCancel={() => setAdding(false)} />
-          </div>
-        </div>
-      ) : (
-        <div className="module-card synthesis-add-tile">
-          <button
-            type="button"
-            className="synthesis-add-tile-btn"
-            onClick={() => setAdding(true)}
-          >
-            + Add synthesis card
-          </button>
+    <>
+      {generationError && (
+        <div className="data-studio-banner data-studio-banner-error">
+          {generationError}
         </div>
       )}
-      {cards.slice(0, 5).map((card) => (
-        <CardItem
-          key={card.id}
-          card={card}
-          onTogglePin={() => onTogglePin(card)}
-        />
-      ))}
-    </div>
+      <div className="tier-row cols-3">
+        {adding ? (
+          <div className="module-card">
+            <div className="module-header">
+              <span className="module-title">New synthesis card</span>
+            </div>
+            <div className="module-body">
+              <CardForm onSubmit={onSubmit} onCancel={() => setAdding(false)} />
+            </div>
+          </div>
+        ) : (
+          <div className="module-card synthesis-add-tile">
+            <div className="synthesis-add-tile-actions">
+              {generateButton}
+              <button
+                type="button"
+                className="synthesis-add-tile-btn"
+                onClick={() => setAdding(true)}
+              >
+                + Add card
+              </button>
+            </div>
+          </div>
+        )}
+        {cards.slice(0, 5).map((card) => (
+          <CardItem
+            key={card.id}
+            card={card}
+            onTogglePin={() => onTogglePin(card)}
+          />
+        ))}
+      </div>
+    </>
   )
 }

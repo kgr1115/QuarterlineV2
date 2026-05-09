@@ -10,14 +10,22 @@ export type WindowState = {
   isMaximized: boolean
 }
 
+export type AiStoredConfig = {
+  provider: 'anthropic'
+  encryptedApiKey: string | null
+  model: string
+}
+
 export type AppConfig = {
   lastWorkspaceId: string | null
   windowState: WindowState | null
+  ai: AiStoredConfig | null
 }
 
 const DEFAULT_CONFIG: AppConfig = {
   lastWorkspaceId: null,
-  windowState: null
+  windowState: null,
+  ai: null
 }
 
 export function readAppConfig(): AppConfig {
@@ -28,7 +36,8 @@ export function readAppConfig(): AppConfig {
     const parsed = JSON.parse(raw) as Partial<AppConfig>
     return {
       lastWorkspaceId: parsed.lastWorkspaceId ?? null,
-      windowState: parsed.windowState ?? null
+      windowState: parsed.windowState ?? null,
+      ai: parsed.ai ?? null
     }
   } catch {
     return { ...DEFAULT_CONFIG }

@@ -32,7 +32,16 @@ export const IpcChannels = {
   ANALYSIS_SAVE_SCENARIO: 'analysis:save-scenario',
   ANALYSIS_DELETE_SCENARIO: 'analysis:delete-scenario',
   REPORT_TOGGLE_PIN: 'report:toggle-pin',
-  REPORT_LIST_PINS: 'report:list-pins'
+  REPORT_LIST_PINS: 'report:list-pins',
+
+  AI_GET_CONFIG: 'ai:get-config',
+  AI_SAVE_CONFIG: 'ai:save-config',
+  AI_CLEAR_CONFIG: 'ai:clear-config',
+  AI_TEST_CONNECTION: 'ai:test-connection',
+  AI_GENERATE_SYNTHESIS: 'ai:generate-synthesis',
+
+  BRIDGE_SCAN_CHANGES: 'bridge:scan-changes',
+  BRIDGE_ACK_CHANGES: 'bridge:ack-changes'
 } as const
 
 export type DbStatusResult = {
@@ -220,4 +229,44 @@ export type ReportPin = {
   pinOrder: number
   section: string | null
   createdAt: string
+}
+
+export type AiConfigPublic = {
+  provider: 'anthropic' | null
+  hasKey: boolean
+  model: string
+  encryptionAvailable: boolean
+}
+
+export type AiConfigSaveInput = {
+  provider: 'anthropic'
+  apiKey: string | null
+  model?: string
+}
+
+export type AiConnectionResult = { ok: true } | { ok: false; message: string }
+
+export type AiSynthesisGenerationResult = {
+  ok: boolean
+  inserted?: number
+  message?: string
+  usage?: {
+    inputTokens: number
+    outputTokens: number
+    cacheReadTokens: number
+    cacheCreationTokens: number
+  }
+}
+
+export type ExternalChange = {
+  relativePath: string
+  status: 'created' | 'modified' | 'deleted'
+  modifiedAt: string
+  sizeBytes: number
+  preview: string
+}
+
+export type ExternalChangeScanResult = {
+  scannedAt: string
+  changes: ExternalChange[]
 }

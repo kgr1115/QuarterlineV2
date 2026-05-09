@@ -6,8 +6,8 @@ Date: 2026-05-09
 
 QuarterlineV2 is a downloadable desktop app for institutional CRE research
 and reporting. Implementation is underway. Milestones 0-6 are complete.
-The Portfolio view renders six real analysis modules driven by imported
-data. Milestone 7 (AI Integration) is next.
+M7 (AI Integration) has its implementation landed and is awaiting a live
+API call by the user before it can be marked complete.
 
 ## Resolved Decisions (see `docs/decision-log.md`)
 
@@ -126,18 +126,25 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
 
 ## Active Milestone
 
-**Milestone 7 (AI Integration)** is next. Two tracks land here:
+**Milestone 7 (AI Integration)** is in progress. Implementation landed
+2026-05-09:
 
-- **Built-in AI**: Anthropic / OpenAI provider configuration in
-  Settings, secure API-key storage, synthesis-card generation from
-  market data, narrative drafting for report sections. Graceful
-  degradation when no provider is configured.
-- **External AI bridge**: detect external changes to `narratives/` and
-  `notes/` on focus / refresh; preview diffs and import changes.
+- Anthropic adapter (`claude-opus-4-7` default, adaptive thinking,
+  `effort: medium`, prompt caching, structured outputs via Zod) behind
+  an internal `AiProviderAdapter` interface so OpenAI can drop in later.
+- API key encrypted via Electron `safeStorage` and stored as a base64
+  ciphertext in `~/.quarterline/config.json`. Settings UI surfaces
+  encryption availability rather than silently falling back to plaintext.
+- Synthesis card generation reachable from the Portfolio synthesis tier
+  (`✦ Generate` button when a key is configured); cards land in
+  `ai_synthesis_card` with `source = 'built-in-ai'`.
+- Narrative generation API ready (no UI yet — M8's report assembly will
+  surface it).
+- External AI bridge: scans `narratives/` and `notes/` for markdown
+  changes on workspace open and on window focus; renders a diff-preview
+  banner above the workspace area; "Acknowledge all" snapshots state
+  to `<workspace>/.quarterline/last-scan.json`.
 
-Decisions to make as M7 starts:
-
-- Anthropic SDK vs. OpenAI SDK first (or both via a small adapter).
-- API key storage: Electron `safeStorage` keychain vs. plaintext in
-  `~/.quarterline/config.json`. Strongly favor `safeStorage`.
-- Synthesis card prompt design.
+Pending: a live API call by the user (paste key, test connection,
+generate cards). Once that succeeds, promote to **Complete** and start
+M8 (Report Assembly and Export).

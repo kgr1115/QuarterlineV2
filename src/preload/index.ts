@@ -1,8 +1,13 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IpcChannels } from '../shared/ipc-channels'
 import type {
+  AiConfigPublic,
+  AiConfigSaveInput,
+  AiConnectionResult,
+  AiSynthesisGenerationResult,
   CsvImportSummary,
   DbStatusResult,
+  ExternalChangeScanResult,
   HeadlineMetrics,
   JsonImportSummary,
   LeaseRow,
@@ -102,6 +107,26 @@ const api = {
         moduleRef,
         section
       })
+  },
+
+  ai: {
+    getConfig: (): Promise<AiConfigPublic> =>
+      ipcRenderer.invoke(IpcChannels.AI_GET_CONFIG),
+    saveConfig: (input: AiConfigSaveInput): Promise<AiConfigPublic> =>
+      ipcRenderer.invoke(IpcChannels.AI_SAVE_CONFIG, input),
+    clearConfig: (): Promise<AiConfigPublic> =>
+      ipcRenderer.invoke(IpcChannels.AI_CLEAR_CONFIG),
+    testConnection: (): Promise<AiConnectionResult> =>
+      ipcRenderer.invoke(IpcChannels.AI_TEST_CONNECTION),
+    generateSynthesis: (): Promise<AiSynthesisGenerationResult> =>
+      ipcRenderer.invoke(IpcChannels.AI_GENERATE_SYNTHESIS)
+  },
+
+  bridge: {
+    scanChanges: (): Promise<ExternalChangeScanResult> =>
+      ipcRenderer.invoke(IpcChannels.BRIDGE_SCAN_CHANGES),
+    ackChanges: (): Promise<null> =>
+      ipcRenderer.invoke(IpcChannels.BRIDGE_ACK_CHANGES)
   }
 }
 

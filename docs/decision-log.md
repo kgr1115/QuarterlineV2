@@ -705,3 +705,135 @@ Risks:
   this is fine; if web distribution ever happens, tree-shake ECharts.
 
 Follow-up: Begin Milestone 7 (AI Integration).
+
+## AI Provider for MVP: Anthropic First, Adapter-Ready
+
+Decision: Wire Anthropic (Claude Opus 4.7) as the only built-in AI
+provider for MVP, but build the integration behind an internal
+provider-adapter interface so OpenAI / others can drop in later.
+
+Date: 2026-05-09
+
+Owner: Project Owner + Chief Backend and Data Agent
+
+Context: M7 needs at least one working AI provider for synthesis card
+generation and narrative drafting. The product owner is dogfooding
+Claude as the day-to-day agent and prefers it as the default. The
+architecture spec is provider-agnostic, so we shouldn't lock the data
+contract to a single SDK.
+
+Options considered:
+
+- Anthropic only (`@anthropic-ai/sdk`).
+- OpenAI only (`openai`).
+- Both at launch.
+- One at launch, adapter-ready.
+
+Decision made: Anthropic first, with `src/main/ai-provider.ts` as the
+internal interface. Each provider implements `generateSynthesis(input)`
+and `generateNarrative(input)`. Settings stores the provider name +
+encrypted key; the dispatcher picks the implementation at call time.
+
+Reasoning:
+
+- Single working path is faster to ship and test than a generic shim.
+- Claude Opus 4.7 with adaptive thinking and structured outputs (Zod
+  schemas) maps cleanly to the synthesis-card generation task.
+- The adapter interface keeps the door open for OpenAI without
+  rewriting the data layer.
+- Built with the `claude-api` skill's guidance: model
+  `claude-opus-4-7`, `thinking: {type: "adaptive"}`,
+  `output_config: {effort: "medium"}` for analysis tasks, and prompt
+  caching on the (frozen) system prompt.
+
+Risks: Provider lock-in concerns are minor — the adapter boundary is
+thin and the data shape (synthesis cards, narratives) is provider-
+agnostic.
+
+Follow-up: When OpenAI support is requested, implement
+`src/main/ai-openai.ts` against the same interface. No data-model
+changes should be needed.
+
+## API Key Storage: Electron safeStorage (OS Keychain)
+
+Decision: Store the AI provider API key encrypted via Electron's
+`safeStorage` (which delegates to the OS keychain — DPAPI on Windows,
+Keychain on macOS, libsecret on Linux). Never write the key in
+plaintext to `~/.quarterline/config.json`.
+
+Date: 2026-05-09
+
+Owner: Chief Backend and Data Agent
+
+Context: The user's API key is a sensitive credential. Storing it in
+plaintext on disk would be the path of least resistance but unsafe —
+config files get backed up, synced, attached to bug reports, or
+checked into git by mistake.
+
+Options considered:
+
+- Plaintext in `~/.quarterline/config.json`.
+- OS keychain via Electron `safeStorage`.
+- Custom AES encryption with a derived key.
+
+Decision made: Electron `safeStorage` with a base64 ciphertext stored
+in `~/.quarterline/config.json` under `aiProvider.encryptedApiKey`.
+The plaintext key never touches disk; decryption only happens
+in-process when dispatching an AI request.
+
+Reasoning: `safeStorage` is the standard Electron pattern. Two lines
+of code (`encryptString` / `decryptString`) and the OS handles key
+management. Refusing to fall back to plaintext on platforms without
+encryption (returns `safeStorage.isEncryptionAvailable() === false`)
+is the correct safety posture — better to surface "encryption
+unavailable, key not saved" than silently store plaintext.
+
+Risks: On rare Linux setups without a keychain backend, `safeStorage`
+returns false. We surface this in the Settings UI: "Secure storage
+unavailable on this system; AI provider cannot be configured here."
+The user can use external AI tools (the bridge path) instead.
+
+Follow-up: When OpenAI support lands, store its key under the same
+mechanism (`aiProvider.openai.encryptedApiKey`).
+
+## AI Synthesis: Structured Outputs via Zod
+
+Decision: Use the Anthropic SDK's `messages.parse()` with a Zod schema
+to generate synthesis cards. Shape: `{cards: SynthesisCard[]}` where
+each card has `cardType`, `title`, `body`, optional `metricValue` /
+`metricUnit` / `direction`.
+
+Date: 2026-05-09
+
+Owner: Chief Backend and Data Agent
+
+Context: Synthesis cards have a strict schema (already in the
+`ai_synthesis_card` SQLite table from M6). The model needs to emit
+data in that shape for direct insert; free-text parsing would be
+fragile.
+
+Options considered:
+
+- Free-text response + regex / heuristic parsing.
+- Tool use with a `record_card` function.
+- Structured outputs via `output_config.format` (JSON schema).
+- SDK's `messages.parse()` with Zod (which converts to JSON schema
+  under the hood).
+
+Decision made: `messages.parse()` with Zod.
+
+Reasoning:
+
+- Zod schemas double as TypeScript types — the parsed output is
+  type-safe.
+- One shot returns 3–5 cards in a single call (cheap, fast).
+- The `claude-api` skill recommends `messages.parse()` as the
+  canonical structured-output pattern for Opus 4.7.
+
+Risks: Refusals (`stop_reason: 'refusal'`) won't match the schema.
+We log and surface the refusal text rather than retrying or fabricating
+cards.
+
+Follow-up: When narrative generation lands (M7 Phase B), use plain
+`messages.create()` (markdown is text, not JSON) with prompt caching
+on the system prompt to keep iterative narrative drafting cheap.
