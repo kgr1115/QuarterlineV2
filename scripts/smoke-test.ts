@@ -10,6 +10,7 @@ import {
   getActiveWorkspace,
   refreshWorkspaceArtifacts
 } from '../src/main/workspace-manager'
+import { readAppConfig, updateAppConfig } from '../src/main/app-config'
 import {
   importMarketStatistics,
   importSubmarketStatistics
@@ -47,6 +48,7 @@ function makeTempSourceFile(): string {
 
 async function run(): Promise<void> {
   const workspaceName = `Smoke Test ${new Date().toISOString().replace(/[:.]/g, '-')}`
+  const priorLastWorkspaceId = readAppConfig().lastWorkspaceId
 
   let workspaceId: string
 
@@ -254,6 +256,18 @@ async function run(): Promise<void> {
     check('cleanup workspace folder removed', !existsSync(folder))
   } catch (err) {
     fail('cleanup', err)
+  }
+
+  try {
+    updateAppConfig({ lastWorkspaceId: priorLastWorkspaceId })
+    const restored = readAppConfig().lastWorkspaceId
+    check(
+      'cleanup restored prior lastWorkspaceId',
+      restored === priorLastWorkspaceId,
+      `prior=${priorLastWorkspaceId ?? 'null'}, now=${restored ?? 'null'}`
+    )
+  } catch (err) {
+    fail('restore lastWorkspaceId', err)
   }
 
   const failed = checks.filter((c) => !c.ok)
