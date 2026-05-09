@@ -4,14 +4,13 @@ Date: 2026-05-09
 
 ## Current State
 
-- Milestones 0-7: **Complete.** M7 was accepted on implementation
-  review (the project owner declined a live Anthropic API call).
-- Milestone 8 (Report Assembly and Export): **In progress** —
-  implementation landed, pending GUI walkthrough on Windows.
+- Milestones 0-8: **Complete.** M7 was accepted on implementation
+  review (live API verification deferred at the project owner's
+  direction). M8 was accepted by the project owner on the same
+  basis on 2026-05-09.
 - Milestone 9 (Polish, Packaging, Release Prep): **In progress** —
-  Phases 1, 2, and a perf-indexes commit have landed. Phase 3
-  (route persistence, per-module error boundaries, more keyboard
-  shortcuts) is in flight.
+  Phases 1, 2, perf-indexes, and Phase 3a have landed. Phase 3b
+  (release pipeline + icon assets) is in flight.
 
 The app now offers the full report-assembly path: edit narratives
 inline, reorder/include sections, optionally generate narratives via
@@ -21,24 +20,20 @@ export to PDF via Electron's `printToPDF` into the workspace's
 
 ## Immediate Priorities
 
-1. **Live-test M8 on Windows whenever ready.**
-
-   M8 (Report Assembly):
-   - Reports → see the six default sections (market-overview through
-     leasing-activity).
-   - Edit a narrative inline; Save; reopen to confirm persistence.
-   - Reorder sections via ↑ / ↓; toggle Include; add a custom section.
-   - Click `Preview` → assembled report renders in iframe.
-   - Click `Export PDF` → file lands in `<workspace>/exports/`; click
-     it in "Recent exports" to open in system viewer.
-
-   If it passes, promote M8 to **Complete**.
-
-   M7 was promoted to Complete based on implementation review; live
-   API verification was deferred at the project owner's direction.
+1. **Cut the first GitHub release.** The repo
+   `kgr1115/QuarterlineV2` is public and `electron-builder.yml`
+   carries a github publish stanza. Workflow:
+   - Bump `package.json` version (e.g. `0.1.0` → `0.1.1`).
+   - `git tag v0.1.1 && git push --tags` (electron-builder reads
+     the tag) — or use `npm version patch`.
+   - With `GH_TOKEN` exported, run `npm run package -- --publish always`.
+   - Verify the release shows up at
+     `https://github.com/kgr1115/QuarterlineV2/releases`.
+   - On the next launch of an installed older build, the auto-updater
+     should detect the new release and download it.
 
 2. **Continue Milestone 9 (Polish, Packaging, and Release Prep).**
-   Phases 1 and 2 landed 2026-05-09.
+   Phases 1, 2, perf-indexes, and Phase 3a landed 2026-05-09.
    - Phase 1 (landed 2026-05-09):
      - Main-process crash logging to `~/.quarterline/logs/`.
      - Renderer error boundary (no white-screen-of-death).
@@ -61,14 +56,23 @@ export to PDF via Electron's `printToPDF` into the workspace's
        guards; state surfaced in Settings → About;
        `electron-builder.yml` carries a commented GitHub publish
        stanza ready to enable.
-   - Phase 3 (queued):
-     - Performance — SQLite index audit + bundle code-splitting
-       for echarts/leaflet (only after measurement on a large
-       workspace).
-     - Release pipeline — fill in `publish:` provider, configure
-       GitHub releases, code-signing, first packaged release.
-     - Icon and installer artwork — drop `icon.ico` plus optional
-       NSIS header/sidebar artwork into `build/`.
+   - Phase 3a (landed 2026-05-09):
+     - Per-module ErrorBoundary wrapping for the Portfolio modules
+       (one broken module no longer takes down the whole view).
+     - `lastRoute` persistence in app config so the app reopens to
+       the route the user closed on.
+     - Ctrl+S in the Reports editor to save the current narrative.
+   - Phase 3b (in flight):
+     - GitHub publish stanza wired in `electron-builder.yml`
+       pointing at `kgr1115/QuarterlineV2` (public).
+     - Release pipeline — first tagged release pending (see
+       Immediate Priorities #1).
+     - Icon and installer artwork — drop `icon.ico` (256x256 multi-
+       resolution) into `build/`. Optional NSIS header.bmp +
+       sidebar.bmp.
+   - Performance — SQLite indexes landed 2026-05-09 (`7f74f52`).
+     Bundle code-splitting for echarts/leaflet remains; only
+     warranted after measurement on a large workspace.
 
 ## Open Decisions Still to Resolve
 

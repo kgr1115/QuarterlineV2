@@ -78,10 +78,14 @@ Every future Claude/Codex/agent session should read these first:
 
 ## Repository Status
 
-Implementation is underway. Milestones 0-3 are complete. The Electron app
-shell runs on Windows with sidebar navigation, global filter bar, placeholder
-module cards, SQLite persistence, and a typed IPC bridge. Milestone 4
-(Workspace Management and Navigation) is next — see `NEXT_STEPS.md`.
+Milestones 0-8 are complete. M9 (Polish, Packaging, Release Prep)
+is the active milestone — Phase 3b is wiring the first GitHub
+release. The Electron app shell runs on Windows with workspace
+lifecycle, CSV/JSON ingestion, six analysis modules, AI integration
+(Anthropic), report assembly + PDF export, and a polished UX
+including a native menu, keyboard shortcuts, accessibility pass,
+crash logging, error boundaries, and route persistence. See
+`NEXT_STEPS.md` for the cut-the-first-release workflow.
 
 ## Dev Setup
 
@@ -92,9 +96,25 @@ npm install
 npm start          # electron-vite dev with HMR
 npm run build      # production build
 npm run package    # Windows NSIS installer (output to dist/)
+npm run smoke-test # Electron-runtime data-layer test (32/32)
 npm run lint       # ESLint
 npm run format     # Prettier
 ```
+
+## Releases
+
+Hosted at `https://github.com/kgr1115/QuarterlineV2/releases`. To
+cut a release:
+
+```
+npm version patch                                  # bumps and tags
+git push --follow-tags
+$env:GH_TOKEN = "<token-with-repo-scope>"
+npm run package -- --publish always
+```
+
+The auto-updater in installed builds checks for new releases on
+launch and downloads in the background.
 
 ## Project Structure
 

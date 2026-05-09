@@ -5,12 +5,14 @@ Date: 2026-05-09
 ## Current Product State
 
 QuarterlineV2 is a downloadable desktop app for institutional CRE research
-and reporting. Implementation is underway. Milestones 0-7 are complete
-(M7 was accepted on implementation review; live API verification was
-deferred at the project owner's direction). M8 (Report Assembly and
-Export) has its implementation landed and is awaiting a GUI walkthrough
-on Windows. M9 (Polish, Packaging, Release Prep) is in progress in
-parallel.
+and reporting. Implementation is underway. Milestones 0-8 are complete
+(M7 + M8 were accepted on implementation review; live API verification
+was deferred at the project owner's direction, and M8 was accepted by
+the project owner on the same basis). M9 (Polish, Packaging, Release
+Prep) is the active milestone.
+
+The app is now hosted on GitHub at `kgr1115/QuarterlineV2` (public).
+`electron-builder.yml` publishes to GitHub releases.
 Phase 1 covers crash logging, renderer error boundary, native menu
 with keyboard shortcuts, installer metadata, and Settings app-info.
 Phase 2 covers the accessibility pass, user preferences (default
@@ -121,6 +123,11 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
   generation, narrative generation, external-AI bridge change detection
   on `narratives/` and `notes/`). Accepted on implementation review;
   live API verification deferred at the project owner's direction.
+- **M8**: Report assembly and export (six default CBRE-style sections,
+  inline narrative editor with Ctrl+S, AI narrative generation hook,
+  preview iframe, PDF export via Electron `printToPDF`,
+  `report_section` + `report_export` tables). Accepted on
+  implementation review.
 
 ## Required Reading For Next Agent
 
@@ -141,25 +148,23 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
 
 ## Active Milestones
 
-**M8 (Report Assembly and Export)** — implementation landed 2026-05-09:
-- New `report_section` and `report_export` tables.
-- `report-assembly.ts` seeds six default CBRE-style sections on first
-  open and manages the section list. Narratives live as files under
-  `<workspace>/narratives/` so the AI bridge can co-edit them.
-- `report-render.ts` produces the report HTML (cover page with key
-  metrics + pinned synthesis cards, section narratives via `marked`,
-  market and submarket statistics tables, generated-date footer).
-- `report-export.ts` renders to PDF via Electron's
-  `webContents.printToPDF()` on a hidden `BrowserWindow` and writes
-  to `<workspace>/exports/`.
-- `ReportsView.tsx`: three-pane (sections sidebar / editor / preview
-  iframe) with reorder, include toggle, custom-section add, AI
-  narrative generation, preview, and PDF export.
-- Pending: user GUI walkthrough on Windows.
+**M9 (Polish, Packaging, Release Prep)** — the active milestone.
+Landed:
+- Phase 1 (`ed86156`) — crash logging, ErrorBoundary, native menu,
+  installer metadata, Settings → About, loading skeletons.
+- Phase 2 (`0468f65`) — accessibility pass, user preferences
+  (default market + property type), auto-updater wiring.
+- Perf indexes (`7f74f52`) — migration 0007 indexes the read-heavy
+  query paths.
+- Phase 3a (`3942f41`) — per-module ErrorBoundary on the Portfolio,
+  `lastRoute` persistence, Ctrl+S in the Reports editor.
+- Phase 3b — GitHub publish stanza wired in `electron-builder.yml`
+  pointing at `kgr1115/QuarterlineV2`. First tagged release is
+  pending; see `NEXT_STEPS.md`.
 
-**M9 (Polish, Packaging, Release Prep)** — in progress in parallel.
-Phase 1 (crash logging, ErrorBoundary, native menu, installer
-metadata, Settings → About), Phase 2 (a11y pass, user preferences,
-auto-updater wiring), and a perf-indexes commit have landed. Phase
-3 (route persistence, per-module error boundaries, more shortcuts)
-is in flight.
+Still pending under M9:
+- Drop `icon.ico` (256x256 multi-resolution) into `build/`.
+- Cut the first GitHub release and verify the auto-updater flow
+  end-to-end on a packaged build.
+- Bundle code-splitting (echarts/leaflet) — speculative until a
+  real workspace shows slowdown.

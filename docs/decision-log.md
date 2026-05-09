@@ -954,3 +954,73 @@ UI never crashes on AI errors.
 Follow-up: First time a real key is configured, watch for
 schema-validation errors on synthesis output and any 401/429 paths
 that may need friendlier surfacing.
+
+## Milestone 8 Accepted on Implementation Review
+
+Decision: Accept M8 (Report Assembly and Export) as Complete.
+
+Date: 2026-05-09
+
+Owner: Project Owner
+
+Context: M8 implementation landed 2026-05-09 — `report_section` /
+`report_export` tables, six default CBRE-style sections seeded on
+first open, narrative editor with Ctrl+S, AI narrative generation
+hook, preview iframe, PDF export via `webContents.printToPDF()`.
+The acceptance criteria called for a manual GUI walkthrough on
+Windows. The project owner indicated M8 was already considered
+complete and asked the chief implementation agent to proceed
+accordingly.
+
+Decision made: Promote M8 to Complete. Build, typecheck, and the
+data-layer smoke test (32/32) cover everything not gated on a live
+PDF render. The same "accepted on implementation review" pattern as
+M7 applies.
+
+Risks: PDF render edge cases (very long narratives, missing
+narrative files, unicode in section titles) won't surface until a
+real export. The renderer treats missing narrative files as empty
+content rather than an error.
+
+Follow-up: When the first packaged release ships, run a
+representative export and confirm the PDF lays out correctly.
+Re-open M8 if needed.
+
+## Public Release Hosted on GitHub
+
+Decision: Host QuarterlineV2 as a public repository at
+`kgr1115/QuarterlineV2` on GitHub. Use GitHub Releases as the
+auto-update publish target.
+
+Date: 2026-05-09
+
+Owner: Project Owner
+
+Context: M9 wires `electron-updater` and a GitHub publish stanza in
+`electron-builder.yml`. The choice of repo location and visibility
+needed an explicit decision. The project owner directed: same owner
+as Quarterline V1 (`kgr1115`), name `QuarterlineV2`, public
+visibility, GitHub Releases for auto-update.
+
+Decision made:
+- Public repo at `https://github.com/kgr1115/QuarterlineV2`.
+- `package.json` `homepage` / `repository` / `bugs` fields point at
+  the repo.
+- `electron-builder.yml` publish stanza uncommented and pointed at
+  the repo.
+
+Reasoning: GitHub Releases is the standard
+electron-builder-supported provider, requires no infrastructure
+beyond the repo, and the auto-updater can read from the public
+release feed without authentication.
+
+Risks: Public repo means the source code, including any future
+sample data fixtures, is world-readable. Confidential client data
+must continue to live only inside `~/.quarterline/workspaces/` and
+never under the repo's `docs/reference-artifacts/samples/` folder.
+Code-signing the installer is a separate decision; without it,
+Windows SmartScreen warns users on first install — acceptable for
+the early access phase, revisit before broader distribution.
+
+Follow-up: Cut the first tagged release (`v0.1.1` or higher) and
+verify the auto-updater flow on a packaged build.

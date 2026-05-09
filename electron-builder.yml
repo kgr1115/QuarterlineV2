@@ -27,11 +27,12 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
 
-# Auto-update publish provider. Uncomment and adjust when a release
-# pipeline is configured. Without this, electron-updater logs a
-# "no publish config" error on startup (caught and written to
-# ~/.quarterline/logs/crash.log) — the app continues to run normally.
-# publish:
-#   provider: github
-#   owner: kgrau
-#   repo: QuarterlineV2
+# Auto-update publish provider. Pointed at the public GitHub repo;
+# electron-updater downloads from /releases/latest. To publish a
+# release, run `npm run package -- --publish always` (requires the
+# GH_TOKEN env var set to a token with `repo` scope) or push a
+# tagged release manually.
+publish:
+  provider: github
+  owner: kgr1115
+  repo: QuarterlineV2

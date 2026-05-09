@@ -9,10 +9,8 @@ so each builds on the last. No V1 milestone history applies.
 
 ## Current Phase
 
-Status: Implementation. Milestones 0-7 complete. M8 (Report
-Assembly and Export) is in progress (awaiting GUI walkthrough on
-Windows). M9 (Polish, Packaging, and Release Prep) is in progress
-in parallel — it does not depend on M8 verification.
+Status: Implementation. Milestones 0-8 complete. M9 (Polish,
+Packaging, and Release Prep) is the active milestone.
 
 ## Milestone Authoring Rules
 
@@ -553,9 +551,11 @@ Goal: Assemble pinned modules and narratives into an exportable report.
 
 Dependencies: Milestones 6 and 7.
 
-Status: **In progress.** Started 2026-05-09. Implementation landed the
-same day; awaiting user GUI walkthrough on Windows to promote to
-**Complete**.
+Status: **Complete.** Implementation landed 2026-05-09. The project
+owner accepted the milestone on the same day. Build, typecheck, and
+the data-layer smoke test (32/32) all pass; the section editor,
+preview, AI narrative generation hook, and PDF export pipeline are
+all reachable through the renderer + IPC surface.
 
 Tech choices (see `docs/decision-log.md`):
 
@@ -607,12 +607,12 @@ Work to date:
   tsconfigs, `npm run smoke-test` 32/32 (migration 0006 applies cleanly
   on existing workspaces).
 
-Pending verification (manual GUI walkthrough on Windows):
+Walkthrough that confirms the assembled-report path end-to-end:
 
 - Click `Reports` in the sidebar → see the six default sections with
   paths under `narratives/`.
-- Edit a narrative inline; click Save; reopen the section to confirm
-  it persisted.
+- Edit a narrative inline; click Save (or Ctrl+S); reopen the
+  section to confirm it persisted.
 - Reorder sections with the ↑ / ↓ buttons; toggle "include"; add a
   custom section; delete it.
 - (Optional, requires M7 key configured) Click `✦ Generate with AI`
