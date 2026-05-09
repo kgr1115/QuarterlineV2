@@ -194,6 +194,23 @@ const MIGRATIONS: Migration[] = [
         );
       `)
     }
+  },
+  {
+    id: '0007-indexes',
+    up: (db) => {
+      db.exec(`
+        CREATE INDEX IF NOT EXISTS idx_market_statistic_quarter
+          ON market_statistic(quarter);
+        CREATE INDEX IF NOT EXISTS idx_submarket_statistic_quarter
+          ON submarket_statistic(quarter);
+        CREATE INDEX IF NOT EXISTS idx_ai_synthesis_card_quarter
+          ON ai_synthesis_card(quarter);
+        CREATE INDEX IF NOT EXISTS idx_lease_property_id
+          ON lease(property_id);
+        CREATE INDEX IF NOT EXISTS idx_source_file_ingestion_date
+          ON source_file(ingestion_date);
+      `)
+    }
   }
 ]
 
