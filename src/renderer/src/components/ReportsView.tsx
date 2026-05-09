@@ -419,7 +419,15 @@ export function ReportsView() {
                 setDraft(e.target.value)
                 setDirty(true)
               }}
-              placeholder="Write the section narrative here. Plain markdown."
+              onKeyDown={(e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                  e.preventDefault()
+                  if (dirty && feedback.kind !== 'busy') {
+                    void onSaveDraft()
+                  }
+                }
+              }}
+              placeholder="Write the section narrative here. Plain markdown. Ctrl+S to save."
             />
           </div>
         )}

@@ -157,7 +157,11 @@ const api = {
     getPreferences: (): Promise<Preferences> =>
       ipcRenderer.invoke(IpcChannels.APP_GET_PREFERENCES),
     savePreferences: (patch: Partial<Preferences>): Promise<Preferences> =>
-      ipcRenderer.invoke(IpcChannels.APP_SAVE_PREFERENCES, patch)
+      ipcRenderer.invoke(IpcChannels.APP_SAVE_PREFERENCES, patch),
+    getLastRoute: (): Promise<string | null> =>
+      ipcRenderer.invoke(IpcChannels.APP_GET_LAST_ROUTE),
+    saveLastRoute: (route: string | null): Promise<null> =>
+      ipcRenderer.invoke(IpcChannels.APP_SAVE_LAST_ROUTE, route)
   },
 
   reportSections: {

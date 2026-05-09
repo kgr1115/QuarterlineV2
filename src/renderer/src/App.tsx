@@ -11,10 +11,45 @@ import { ExternalChangesBanner } from './components/ExternalChangesBanner'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { WorkspaceProvider, useWorkspace } from './state/workspace'
 
+const VALID_ROUTES: RouteId[] = [
+  'portfolio',
+  'assets',
+  'market-intel',
+  'reports',
+  'scenarios',
+  'data-studio',
+  'watchlist',
+  'alerts',
+  'settings'
+]
+
+function isValidRoute(value: string | null): value is RouteId {
+  return value !== null && (VALID_ROUTES as string[]).includes(value)
+}
+
 function AppShell() {
   const [createOpen, setCreateOpen] = useState(false)
-  const [route, setRoute] = useState<RouteId>('portfolio')
+  const [route, setRouteState] = useState<RouteId>('portfolio')
   const { close: closeWorkspace } = useWorkspace()
+
+  const setRoute = (next: RouteId): void => {
+    setRouteState(next)
+    void window.quarterline.app.saveLastRoute(next).catch(() => {})
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    window.quarterline.app
+      .getLastRoute()
+      .then((saved) => {
+        if (cancelled) return
+        if (isValidRoute(saved)) setRouteState(saved)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     const dispose = window.quarterline.app.onMenuAction((action) => {

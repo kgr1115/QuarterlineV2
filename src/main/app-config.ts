@@ -23,6 +23,7 @@ export type Preferences = {
 
 export type AppConfig = {
   lastWorkspaceId: string | null
+  lastRoute: string | null
   windowState: WindowState | null
   ai: AiStoredConfig | null
   preferences: Preferences
@@ -35,6 +36,7 @@ const DEFAULT_PREFERENCES: Preferences = {
 
 const DEFAULT_CONFIG: AppConfig = {
   lastWorkspaceId: null,
+  lastRoute: null,
   windowState: null,
   ai: null,
   preferences: { ...DEFAULT_PREFERENCES }
@@ -48,6 +50,7 @@ export function readAppConfig(): AppConfig {
     const parsed = JSON.parse(raw) as Partial<AppConfig>
     return {
       lastWorkspaceId: parsed.lastWorkspaceId ?? null,
+      lastRoute: parsed.lastRoute ?? null,
       windowState: parsed.windowState ?? null,
       ai: parsed.ai ?? null,
       preferences: {

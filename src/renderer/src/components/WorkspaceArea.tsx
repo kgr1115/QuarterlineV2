@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useWorkspace } from '../state/workspace'
 import { KeyMetricsBanner } from './modules/KeyMetricsBanner'
 import { SynthesisCards } from './modules/SynthesisCards'
@@ -5,9 +6,14 @@ import { MarketMap } from './modules/MarketMap'
 import { StackingPlan } from './modules/StackingPlan'
 import { FinancialTable } from './modules/FinancialTable'
 import { ScenarioControls } from './modules/ScenarioControls'
+import { ErrorBoundary } from './ErrorBoundary'
 
 type Props = {
   onCreateWorkspace: () => void
+}
+
+function ModuleSlot({ children }: { children: ReactNode }) {
+  return <ErrorBoundary>{children}</ErrorBoundary>
 }
 
 export function WorkspaceArea({ onCreateWorkspace }: Props) {
@@ -49,18 +55,30 @@ export function WorkspaceArea({ onCreateWorkspace }: Props) {
 
   return (
     <div className="workspace">
-      <KeyMetricsBanner />
+      <ModuleSlot>
+        <KeyMetricsBanner />
+      </ModuleSlot>
 
-      <SynthesisCards />
+      <ModuleSlot>
+        <SynthesisCards />
+      </ModuleSlot>
 
       <div className="tier-row cols-2">
-        <MarketMap />
-        <StackingPlan />
+        <ModuleSlot>
+          <MarketMap />
+        </ModuleSlot>
+        <ModuleSlot>
+          <StackingPlan />
+        </ModuleSlot>
       </div>
 
       <div className="tier-row split-60-40">
-        <FinancialTable />
-        <ScenarioControls />
+        <ModuleSlot>
+          <FinancialTable />
+        </ModuleSlot>
+        <ModuleSlot>
+          <ScenarioControls />
+        </ModuleSlot>
       </div>
     </div>
   )

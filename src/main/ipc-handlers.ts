@@ -995,4 +995,16 @@ export function registerIpcHandlers(): void {
       return next
     }
   )
+
+  ipcMain.handle(IpcChannels.APP_GET_LAST_ROUTE, (): string | null => {
+    return readAppConfig().lastRoute
+  })
+
+  ipcMain.handle(
+    IpcChannels.APP_SAVE_LAST_ROUTE,
+    (_event, route: string | null): null => {
+      updateAppConfig({ lastRoute: route })
+      return null
+    }
+  )
 }

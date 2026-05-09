@@ -61,7 +61,9 @@ export const IpcChannels = {
   APP_REPORT_RENDERER_ERROR: 'app:report-renderer-error',
   APP_MENU_ACTION: 'app:menu-action',
   APP_GET_PREFERENCES: 'app:get-preferences',
-  APP_SAVE_PREFERENCES: 'app:save-preferences'
+  APP_SAVE_PREFERENCES: 'app:save-preferences',
+  APP_GET_LAST_ROUTE: 'app:get-last-route',
+  APP_SAVE_LAST_ROUTE: 'app:save-last-route'
 } as const
 
 export type MenuAction =

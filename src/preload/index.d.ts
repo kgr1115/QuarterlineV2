@@ -103,6 +103,8 @@ declare global {
         onMenuAction: (handler: (action: MenuAction) => void) => () => void
         getPreferences: () => Promise<Preferences>
         savePreferences: (patch: Partial<Preferences>) => Promise<Preferences>
+        getLastRoute: () => Promise<string | null>
+        saveLastRoute: (route: string | null) => Promise<null>
       }
       reportSections: {
         list: () => Promise<ReportSection[]>
