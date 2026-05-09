@@ -4,15 +4,14 @@ Date: 2026-05-09
 
 ## Current State
 
-- Milestones 0-6: **Complete.**
-- Milestone 7 (AI Integration): **In progress** — implementation landed,
-  pending live API call by the user.
+- Milestones 0-7: **Complete.** M7 was accepted on implementation
+  review (the project owner declined a live Anthropic API call).
 - Milestone 8 (Report Assembly and Export): **In progress** —
   implementation landed, pending GUI walkthrough on Windows.
 - Milestone 9 (Polish, Packaging, Release Prep): **In progress** —
-  Phase 1 (crash logging, error boundary, native menu, installer
-  metadata, Settings app-info) underway in parallel; runs
-  independently of M7/M8 verification.
+  Phases 1, 2, and a perf-indexes commit have landed. Phase 3
+  (route persistence, per-module error boundaries, more keyboard
+  shortcuts) is in flight.
 
 The app now offers the full report-assembly path: edit narratives
 inline, reorder/include sections, optionally generate narratives via
@@ -22,26 +21,21 @@ export to PDF via Electron's `printToPDF` into the workspace's
 
 ## Immediate Priorities
 
-1. **Live-test M7 + M8 on Windows whenever ready.**
-
-   M7 (AI Integration):
-   - Settings → AI Provider → paste an Anthropic API key, save.
-   - Test connection.
-   - Portfolio → `✦ Generate` on the synthesis tier → expect 3–5 cards.
-   - Externally edit `narratives/market-overview.md` → refocus app →
-     external-changes banner appears with diff preview.
+1. **Live-test M8 on Windows whenever ready.**
 
    M8 (Report Assembly):
    - Reports → see the six default sections (market-overview through
      leasing-activity).
    - Edit a narrative inline; Save; reopen to confirm persistence.
    - Reorder sections via ↑ / ↓; toggle Include; add a custom section.
-   - (M7 key configured) Click `✦ Generate with AI` to draft a section.
    - Click `Preview` → assembled report renders in iframe.
    - Click `Export PDF` → file lands in `<workspace>/exports/`; click
      it in "Recent exports" to open in system viewer.
 
-   If both pass, promote M7 and M8 to **Complete** and start M9.
+   If it passes, promote M8 to **Complete**.
+
+   M7 was promoted to Complete based on implementation review; live
+   API verification was deferred at the project owner's direction.
 
 2. **Continue Milestone 9 (Polish, Packaging, and Release Prep).**
    Phases 1 and 2 landed 2026-05-09.

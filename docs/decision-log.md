@@ -917,3 +917,40 @@ Follow-up: When report drafts (multiple versions of the same report)
 are added post-MVP, the narrative path should include the draft ID
 (e.g. `narratives/<draft-id>/market-overview.md`) so drafts don't
 clobber each other's narratives.
+
+## Milestone 7 Accepted Without Live API Verification
+
+Decision: Accept M7 (AI Integration) as Complete based on
+implementation review. Defer live Anthropic API verification.
+
+Date: 2026-05-09
+
+Owner: Project Owner
+
+Context: M7 implementation landed 2026-05-09 — Anthropic adapter,
+encrypted-key storage via Electron `safeStorage`, synthesis-card
+generation, narrative generation, and external-AI bridge change
+detection. The acceptance criteria called for a live API call to
+generate cards. The project owner indicated they will not be
+running live API key tests, and asked to continue.
+
+Decision made: Promote M7 to Complete on implementation review. The
+data-layer smoke test (32/32) and TypeScript build cover everything
+that does not depend on a real Anthropic key. The adapter follows
+the patterns from the `claude-api` skill (Opus 4.7, adaptive
+thinking, prompt caching, structured outputs via Zod).
+
+Reasoning: Holding M7 in "in progress" indefinitely would make the
+status docs misleading. The implementation is reviewable; if a
+future session runs a live key and surfaces issues, those land as
+follow-ups against M7.
+
+Risks: A real API call could surface errors not caught by static
+review — refusal handling, schema mismatches, rate-limit shapes.
+Mitigations: typed exception classes are already used in
+`ai-anthropic.ts`; the dispatcher returns `{ ok, message }` so the
+UI never crashes on AI errors.
+
+Follow-up: First time a real key is configured, watch for
+schema-validation errors on synthesis output and any 401/429 paths
+that may need friendlier surfacing.

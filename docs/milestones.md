@@ -9,11 +9,10 @@ so each builds on the last. No V1 milestone history applies.
 
 ## Current Phase
 
-Status: Implementation. Milestones 0-6 complete. M7 (AI Integration)
-and M8 (Report Assembly and Export) are both in progress (awaiting
-live verification on Windows). M9 (Polish, Packaging, and Release
-Prep) is in progress in parallel — it does not depend on M7/M8
-verification.
+Status: Implementation. Milestones 0-7 complete. M8 (Report
+Assembly and Export) is in progress (awaiting GUI walkthrough on
+Windows). M9 (Polish, Packaging, and Release Prep) is in progress
+in parallel — it does not depend on M8 verification.
 
 ## Milestone Authoring Rules
 
@@ -423,10 +422,14 @@ Goal: Built-in AI synthesis and external AI bridge.
 
 Dependencies: Milestone 6.
 
-Status: **In progress.** Started 2026-05-09. Implementation landed the
-same day. The user has indicated they will not test live API calls
-until later — once they do and the configured provider successfully
-generates cards, this milestone can be promoted to **Complete**.
+Status: **Complete.** Implementation landed 2026-05-09. The project
+owner declined live API verification — the milestone is accepted on
+implementation review. Build, typecheck, and the data-layer smoke
+test (32/32) all pass; the Anthropic adapter, encrypted-key
+storage, dispatcher, and external-bridge change detection are
+exercised by the typed IPC surface and follow the patterns from the
+`claude-api` skill. If a future session runs a live key, any
+adjustments will land as a follow-up.
 
 Tech choices (see `docs/decision-log.md`):
 
@@ -493,7 +496,7 @@ Work to date:
 - Verified: `npm run build` clean, `npx tsc --noEmit` clean for both
   tsconfigs, `npm run smoke-test` 32/32 (data layer untouched).
 
-Pending verification (live API call by user):
+Verification path if a future session runs a live key:
 
 - Open Settings → AI Provider, paste an Anthropic API key, save.
   Expect: success banner; status changes to "◉ Yes (encrypted)".

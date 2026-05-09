@@ -5,11 +5,12 @@ Date: 2026-05-09
 ## Current Product State
 
 QuarterlineV2 is a downloadable desktop app for institutional CRE research
-and reporting. Implementation is underway. Milestones 0-6 are complete.
-M7 (AI Integration) and M8 (Report Assembly and Export) both have their
-implementations landed and are awaiting user verification on Windows
-(M7 needs a live Anthropic key; M8 needs a GUI walkthrough). M9
-(Polish, Packaging, Release Prep) is in progress in parallel.
+and reporting. Implementation is underway. Milestones 0-7 are complete
+(M7 was accepted on implementation review; live API verification was
+deferred at the project owner's direction). M8 (Report Assembly and
+Export) has its implementation landed and is awaiting a GUI walkthrough
+on Windows. M9 (Polish, Packaging, Release Prep) is in progress in
+parallel.
 Phase 1 covers crash logging, renderer error boundary, native menu
 with keyboard shortcuts, installer metadata, and Settings app-info.
 Phase 2 covers the accessibility pass, user preferences (default
@@ -115,6 +116,11 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
   manual-author flow, Leaflet 2D market map, stacking plan, CBRE-style
   financial table, ECharts dual-axis scenario panel, pin-to-report
   contract via `report_pin` table).
+- **M7**: AI integration (Anthropic adapter behind a provider interface,
+  encrypted-key storage via Electron `safeStorage`, synthesis-card
+  generation, narrative generation, external-AI bridge change detection
+  on `narratives/` and `notes/`). Accepted on implementation review;
+  live API verification deferred at the project owner's direction.
 
 ## Required Reading For Next Agent
 
@@ -135,20 +141,7 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
 
 ## Active Milestones
 
-**Milestones 7 and 8** are both in progress. Implementations landed
-2026-05-09.
-
-**M7 (AI Integration):**
-- Anthropic adapter (`claude-opus-4-7` default, adaptive thinking,
-  `effort: medium`, prompt caching, structured outputs via Zod) behind
-  an internal `AiProviderAdapter` interface.
-- API key encrypted via Electron `safeStorage`.
-- Synthesis-card generation from Portfolio (`✦ Generate`); narrative
-  generation surfaced in M8's editor.
-- External-AI bridge change detection on `narratives/` and `notes/`.
-- Pending: live API call by the user.
-
-**M8 (Report Assembly and Export):**
+**M8 (Report Assembly and Export)** — implementation landed 2026-05-09:
 - New `report_section` and `report_export` tables.
 - `report-assembly.ts` seeds six default CBRE-style sections on first
   open and manages the section list. Narratives live as files under
@@ -164,5 +157,9 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
   narrative generation, preview, and PDF export.
 - Pending: user GUI walkthrough on Windows.
 
-Once M7 and M8 are both verified, promote them to **Complete** and
-start M9 (Polish, Packaging, and Release Prep).
+**M9 (Polish, Packaging, Release Prep)** — in progress in parallel.
+Phase 1 (crash logging, ErrorBoundary, native menu, installer
+metadata, Settings → About), Phase 2 (a11y pass, user preferences,
+auto-updater wiring), and a perf-indexes commit have landed. Phase
+3 (route persistence, per-module error boundaries, more shortcuts)
+is in flight.
