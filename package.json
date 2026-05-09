@@ -21,7 +21,7 @@
     "postinstall": "electron-builder install-app-deps",
     "lint": "eslint src/",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
-    "smoke-test": "electron-vite build && electron out/main/smoke-test.js"
+    "smoke-test": "electron-vite build && electron --no-sandbox out/main/smoke-test.js"
   },
   "author": "Kyle Rauch",
   "license": "MIT",
