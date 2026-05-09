@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { WorkspaceSwitcher } from './WorkspaceSwitcher'
 
 const navItems = [
@@ -11,7 +10,9 @@ const navItems = [
   { id: 'watchlist', label: 'Watchlist', section: 'monitor' },
   { id: 'alerts', label: 'Alerts', section: 'monitor' },
   { id: 'settings', label: 'Settings', section: 'system' }
-]
+] as const
+
+export type RouteId = (typeof navItems)[number]['id']
 
 const sections: Record<string, string> = {
   research: 'Research',
@@ -22,12 +23,12 @@ const sections: Record<string, string> = {
 }
 
 type Props = {
+  activeRoute: RouteId
+  onRouteChange: (route: RouteId) => void
   onCreateWorkspace: () => void
 }
 
-export function Sidebar({ onCreateWorkspace }: Props) {
-  const [active, setActive] = useState('portfolio')
-
+export function Sidebar({ activeRoute, onRouteChange, onCreateWorkspace }: Props) {
   const grouped = Object.entries(sections).map(([key, label]) => ({
     label,
     items: navItems.filter((item) => item.section === key)
@@ -51,8 +52,8 @@ export function Sidebar({ onCreateWorkspace }: Props) {
             {group.items.map((item) => (
               <div
                 key={item.id}
-                className={`nav-item ${active === item.id ? 'active' : ''}`}
-                onClick={() => setActive(item.id)}
+                className={`nav-item ${activeRoute === item.id ? 'active' : ''}`}
+                onClick={() => onRouteChange(item.id)}
               >
                 <span>{item.label}</span>
               </div>

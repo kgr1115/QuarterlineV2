@@ -1,6 +1,14 @@
 import type {
+  CsvImportSummary,
   DbStatusResult,
+  JsonImportSummary,
+  LeaseRow,
+  MarketStatRow,
   PingResult,
+  PropertyRow,
+  SourceFileRow,
+  SourceIngestSummary,
+  SubmarketStatRow,
   WindowState,
   Workspace,
   WorkspaceCreateInput
@@ -21,6 +29,22 @@ declare global {
       windowState: {
         get: () => Promise<WindowState | null>
         save: (state: WindowState) => Promise<null>
+      }
+      dialog: {
+        openCsv: () => Promise<string | null>
+        openJson: () => Promise<string | null>
+        openFiles: () => Promise<string[]>
+      }
+      data: {
+        importMarketStats: (path: string) => Promise<CsvImportSummary>
+        importSubmarketStats: (path: string) => Promise<CsvImportSummary>
+        importPropertyLease: (path: string) => Promise<JsonImportSummary>
+        ingestSources: (paths: string[]) => Promise<SourceIngestSummary>
+        listMarketStats: () => Promise<MarketStatRow[]>
+        listSubmarketStats: () => Promise<SubmarketStatRow[]>
+        listProperties: () => Promise<PropertyRow[]>
+        listLeases: () => Promise<LeaseRow[]>
+        listSources: () => Promise<SourceFileRow[]>
       }
     }
   }

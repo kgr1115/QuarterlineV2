@@ -5,9 +5,10 @@ Date: 2026-05-09
 ## Current Product State
 
 QuarterlineV2 is a downloadable desktop app for institutional CRE research
-and reporting. Implementation is underway. Milestones 0-3 are complete and
-M4 (Workspace Management and Navigation) has its implementation landed and
-is awaiting a Windows smoke test before being marked complete.
+and reporting. Implementation is underway. Milestones 0-3 are complete.
+M4 (Workspace Management and Navigation) and M5 (Data Ingestion and
+Storage) both have implementations landed and are awaiting a Windows
+smoke test before being marked complete.
 
 ## Resolved Decisions (see `docs/decision-log.md`)
 
@@ -46,7 +47,7 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
 
 ## Current Technical State
 
-- **Milestones 0-3 complete; M4 implementation landed (pending verification).**
+- **Milestones 0-3 complete; M4 + M5 implementations landed (pending verification).**
 - Project structure: `src/main/`, `src/preload/`, `src/renderer/`, `src/shared/`.
 - Main process modules:
   - `index.ts` — window lifecycle, window-state save/restore, last-workspace
@@ -54,23 +55,40 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
   - `paths.ts` — central path helpers for `~/.quarterline/`.
   - `app-config.ts` — read/write `~/.quarterline/config.json`.
   - `workspace-manager.ts` — workspace lifecycle, slug generation, folder
-    initialization, active-workspace state.
-  - `workspace-db.ts` — per-workspace SQLite schema and helpers.
-  - `workspace-manifest.ts` — `WORKSPACE.md` renderer.
-  - `ipc-handlers.ts` — registers all IPC channels.
-- Preload exposes `window.quarterline` with `ping`, `dbStatus`, `workspace.*`,
-  and `windowState.*` namespaces.
+    initialization, active-workspace state, post-import refresh of manifest
+    and `data/*.json`.
+  - `workspace-db.ts` — per-workspace SQLite schema with a migration runner.
+    Tables: `workspace`, `market_statistic`, `submarket_statistic`,
+    `property`, `lease`, `source_file`, `_migrations`.
+  - `workspace-manifest.ts` — `WORKSPACE.md` renderer with auto-generated
+    "Current Data Summary".
+  - `csv-import.ts` — header-tolerant CSV importer for market and submarket
+    statistics (uses `csv-parse`).
+  - `json-import.ts` — JSON importer for property + lease data.
+  - `source-ingest.ts` — file ingestion to `<workspace>/sources/` with
+    sha256 dedup and confidentiality flag.
+  - `data-export.ts` — writes `data/market-statistics.json`,
+    `data/submarket-statistics.json`, `data/property-data.json`,
+    `data/lease-data.json` per `docs/ai-bridge-spec.md` schemas.
+  - `ipc-handlers.ts` — registers workspace, window, dialog, and data
+    channels.
+- Preload exposes `window.quarterline` with `ping`, `dbStatus`,
+  `workspace.*`, `windowState.*`, `dialog.*`, and `data.*` namespaces.
 - Renderer:
   - `state/workspace.tsx` — `WorkspaceProvider` and `useWorkspace` hook.
   - `components/WorkspaceSwitcher.tsx` — sidebar dropdown for switching.
   - `components/CreateWorkspaceDialog.tsx` — modal for new workspaces.
-  - Sidebar, FilterBar, WorkspaceArea, StatusBar updated to consume the
-    workspace context.
+  - `components/DataStudio.tsx` — Data Studio view with five sub-tabs
+    (Market Stats, Submarket Stats, Properties, Leases, Source Files),
+    import actions, and validation banner.
+  - Sidebar routes the active nav item to either WorkspaceArea or
+    DataStudio. FilterBar and StatusBar consume the workspace context.
 - Per-workspace folder layout (created on first save):
   `WORKSPACE.md`, `workspace.db`, `data/`, `narratives/` (with `custom/`),
   `notes/`, `sources/`, `exports/`, `.quarterline/`.
 - Build: electron-vite for dev/build, electron-builder for Windows packaging.
 - Tooling: ESLint (typescript-eslint), Prettier.
+- Sample import fixtures under `docs/reference-artifacts/samples/`.
 
 ## Completed Milestones
 
@@ -97,10 +115,10 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
 13. `docs/mvp-scope.md`
 14. `docs/publication-output-spec.md`
 
-## Active Milestone
+## Active Milestones
 
-**Milestone 4: Workspace Management and Navigation** is in progress.
-Implementation landed 2026-05-09; the next agent (or this one in the next
-session) should run a Windows smoke test against the acceptance criteria in
-`docs/milestones.md`, then promote the milestone to **Complete** and start
-Milestone 5 (Data Ingestion and Storage).
+**M4 (Workspace Management and Navigation)** and **M5 (Data Ingestion and
+Storage)** are both in progress. Implementations landed 2026-05-09; the
+next session should run a Windows smoke test against the acceptance
+criteria in `docs/milestones.md`, then promote both milestones to
+**Complete** and start Milestone 6 (Analysis Modules).

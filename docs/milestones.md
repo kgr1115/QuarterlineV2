@@ -9,8 +9,9 @@ so each builds on the last. No V1 milestone history applies.
 
 ## Current Phase
 
-Status: Implementation. Milestones 0-3 are complete. Milestone 4 (Workspace
-Management and Navigation) is **in progress**.
+Status: Implementation. Milestones 0-3 complete; M4 (Workspace Management
+and Navigation) implementation landed and is awaiting Windows smoke test;
+M5 (Data Ingestion and Storage) is **in progress** in parallel.
 
 ## Milestone Authoring Rules
 
@@ -213,6 +214,60 @@ Owner: Chief Backend and Data Agent.
 Goal: Import market data from CSV/JSON into a workspace.
 
 Dependencies: Milestone 4.
+
+Status: **In progress.** Started 2026-05-09. Implementation delivered the
+same day; awaiting Windows smoke test to promote to **Complete**.
+
+Work to date:
+
+- Per-workspace SQLite schema extended with `market_statistic`,
+  `submarket_statistic`, `property`, `lease`, and `source_file` tables.
+  Migration runner records applied migrations and runs them in order.
+- `csv-parse` (6.x) added as a dependency for header-tolerant parsing.
+- CSV importer (`src/main/csv-import.ts`) supports CBRE-style columns,
+  case-insensitive header matching, and accepted aliases. Numeric parsing
+  handles `%`, `$`, comma separators, parenthesized negatives, blanks,
+  and `n/a`. Re-importing the same quarter replaces that quarter's rows
+  in a single transaction.
+- JSON importer (`src/main/json-import.ts`) reads
+  `{ properties: [...], leases: [...] }` payloads, upserts properties by
+  ID, replaces all leases. Pre-validates lease `propertyId` references
+  before any DB write.
+- Source ingestion (`src/main/source-ingest.ts`) hashes (sha256), copies
+  to `<workspace>/sources/<short-hash><ext>`, records confidentiality
+  flag, deduplicates by content hash.
+- Data export (`src/main/data-export.ts`) writes
+  `data/market-statistics.json`, `data/submarket-statistics.json`,
+  `data/property-data.json`, `data/lease-data.json` per
+  `docs/ai-bridge-spec.md` schemas. Source files never appear in
+  `data/` exports.
+- `WORKSPACE.md` "Current Data Summary" auto-regenerates after each
+  import (row counts, headline metrics, top submarkets).
+- IPC: `dialog:open:csv/json/files`, `data:import:market-stats`,
+  `data:import:submarket-stats`, `data:import:property-lease`,
+  `data:ingest:sources`, and `data:list:*` for each table.
+- Renderer: sidebar nav now routes to a Data Studio view with sub-tabs
+  (Market Stats, Submarket Stats, Properties, Leases, Source Files),
+  import action buttons, success/error banners, and tabular numerics
+  matching the design-system spec.
+- Sample fixtures added under `docs/reference-artifacts/samples/` for
+  smoke testing.
+- Verified: `npm run build` and `npx tsc --noEmit` clean.
+
+Pending verification (Windows manual smoke test):
+
+- In an open workspace, import `atlanta-market-stats-q1-2026.csv` —
+  4 rows appear in the Market Stats tab and
+  `<workspace>/data/market-statistics.json` matches the AI-bridge schema.
+- Import `atlanta-submarket-stats-q1-2026.csv` — 5 rows in Submarket Stats
+  and `data/submarket-statistics.json` is generated.
+- Import `atlanta-properties-leases.json` — 3 properties and 3 leases,
+  `data/property-data.json` and `data/lease-data.json` are generated.
+- Ingest a sample source file — appears in Source Files tab, shows up
+  under `<workspace>/sources/`, and is NOT exposed in `data/*.json`.
+- `WORKSPACE.md` "Current Data Summary" reflects the imported numbers.
+- A malformed CSV (missing required column) shows a clear validation
+  error in the banner without writing rows.
 
 Scope:
 

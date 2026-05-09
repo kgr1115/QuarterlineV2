@@ -385,3 +385,102 @@ restructuring data — the folder name is just the local addressing scheme.
 
 Follow-up: When team sync lands, generate a stable `workspace.sync_id` (UUID)
 separate from the local folder slug. The folder slug becomes a display alias.
+
+## CSV Parser: csv-parse
+
+Decision: Use the `csv-parse` package (v6) for CSV ingestion in M5 rather
+than hand-rolling a parser.
+
+Date: 2026-05-09
+
+Owner: Chief Backend and Data Agent
+
+Context: M5 needs to import market and submarket statistics from CSV. Real
+CBRE-style data may include quoted fields, BOMs from Excel exports, and
+parenthesized negatives. A hand-rolled parser is fragile.
+
+Options considered:
+
+- Hand-rolled split-on-comma parser.
+- `csv-parse` (no transitive dependencies, ~100KB, battle-tested).
+- `papaparse` (browser-friendly, larger).
+
+Decision made: `csv-parse` (sync API).
+
+Reasoning: Zero dependencies, mature, handles edge cases out of the box.
+Sync API is appropriate for the main process where we read modest-sized
+CSVs (tens to hundreds of rows). Adds 1 dependency, no transitive bloat.
+
+Risks: One more dep to track for security advisories. Mitigated by it
+being a stable package with a long maintenance track record.
+
+Follow-up: Numeric coercion (parens for negatives, `%`, `$`, commas) is
+implemented in `src/main/csv-import.ts` rather than in csv-parse —
+csv-parse returns raw strings.
+
+## Re-import Replaces the Quarter's Rows
+
+Decision: Re-importing market or submarket statistics for the same quarter
+deletes that quarter's existing rows before inserting the new ones, in a
+single transaction.
+
+Date: 2026-05-09
+
+Owner: Chief Backend and Data Agent
+
+Context: An analyst will iteratively refine market data — fix a typo in
+Excel, save, re-import. The importer needs to handle re-import without
+producing duplicate rows or requiring the analyst to manually clear
+existing data.
+
+Options considered:
+
+- Append-only: each import adds rows; analyst manually deletes old ones.
+- Upsert by composite key: requires defining a unique key per row across
+  all CBRE permutations (class, subclass, submarket, market). Brittle if
+  the CBRE schema evolves.
+- Delete-by-quarter then insert: simple, atomic, idempotent.
+
+Decision made: Delete-by-quarter then insert, in one transaction.
+
+Reasoning: Simplicity. The market statistics table is a snapshot of one
+quarter's published numbers — the natural unit of replacement is the
+quarter itself. Atomic transaction keeps the DB consistent if the import
+fails partway. Source files (which back the data) live in `sources/`
+with their own retention rules and are not affected.
+
+Risks: An analyst who imports two CSVs covering the *same* quarter
+expecting them to merge will be surprised by the second import wiping
+the first. Document this in the importer's UI feedback when M9 polishes
+copy.
+
+Follow-up: When workspace backup/restore lands (post-MVP), include the
+import history (filename, row counts, hash of the source CSV) so reverts
+are possible.
+
+## Source File Deduplication by Content Hash
+
+Decision: Source file ingestion deduplicates by sha256 content hash.
+Re-ingesting the same file (even under a different filename) is rejected
+with a clear error rather than silently storing two copies.
+
+Date: 2026-05-09
+
+Owner: Chief Backend and Data Agent
+
+Context: Source files (lease abstracts, market reports, broker emails)
+are confidential and bulky. Analysts often re-save or re-receive the
+same document; the app shouldn't bloat `sources/` with duplicates.
+
+Decision made: Compute sha256 at ingest time; reject duplicates.
+
+Reasoning: Content hashing is the only way to detect "same file under a
+different name." Filename-based dedup misses the common case of "Final
+v2 (1).pdf" vs "Final v2.pdf" being the same content.
+
+Risks: Two genuinely different files with the same content (impossible
+under sha256 in practice) would be conflated — acceptable.
+
+Follow-up: When source-file retention policy lands (an open data-model
+decision), the policy should be expressed in terms of hash, ingestion
+date, and confidentiality flag rather than filename.

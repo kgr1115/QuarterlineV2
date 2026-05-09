@@ -1,0 +1,72 @@
+{
+  "properties": [
+    {
+      "id": "atl-prop-001",
+      "name": "1170 Peachtree",
+      "address": "1170 Peachtree St NE",
+      "submarket": "Midtown",
+      "propertyClass": "Class A",
+      "rsf": 500000,
+      "floors": 25,
+      "yearBuilt": 2008
+    },
+    {
+      "id": "atl-prop-002",
+      "name": "Bank of America Plaza",
+      "address": "600 Peachtree St NE",
+      "submarket": "Midtown",
+      "propertyClass": "Class A",
+      "rsf": 1250000,
+      "floors": 55,
+      "yearBuilt": 1992
+    },
+    {
+      "id": "atl-prop-003",
+      "name": "Phipps Tower",
+      "address": "3438 Peachtree Rd NE",
+      "submarket": "Buckhead",
+      "propertyClass": "Class A",
+      "rsf": 475000,
+      "floors": 22,
+      "yearBuilt": 2010
+    }
+  ],
+  "leases": [
+    {
+      "propertyId": "atl-prop-001",
+      "tenant": "KPMG",
+      "suite": "1500",
+      "floor": 15,
+      "rsf": 105000,
+      "leaseType": "New Lease",
+      "startDate": "2026-07-01",
+      "expirationDate": "2036-06-30",
+      "rent_dollarsSF": 45.00,
+      "status": "occupied"
+    },
+    {
+      "propertyId": "atl-prop-002",
+      "tenant": "Cushman & Wakefield",
+      "suite": "4000",
+      "floor": 40,
+      "rsf": 75000,
+      "leaseType": "Renewal",
+      "startDate": "2026-04-01",
+      "expirationDate": "2031-03-31",
+      "rent_dollarsSF": 52.50,
+      "status": "occupied"
+    },
+    {
+      "propertyId": "atl-prop-003",
+      "tenant": "Mercer",
+      "suite": "1800",
+      "floor": 18,
+      "rsf": 32000,
+      "leaseType": "New Lease",
+      "startDate": "2026-09-01",
+      "expirationDate": "2036-08-31",
+      "rent_dollarsSF": 48.75,
+      "status": "occupied"
+    }
+  ]
+}

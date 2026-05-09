@@ -14,6 +14,123 @@ export type WorkspaceRow = {
   settings: string
 }
 
+type Migration = {
+  id: string
+  up: (db: Database.Database) => void
+}
+
+const MIGRATIONS: Migration[] = [
+  {
+    id: '0001-workspace-meta',
+    up: (db) => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS workspace (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          market TEXT NOT NULL,
+          property_type TEXT NOT NULL,
+          current_quarter TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          settings TEXT NOT NULL DEFAULT '{}'
+        );
+      `)
+    }
+  },
+  {
+    id: '0002-market-statistics',
+    up: (db) => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS market_statistic (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          quarter TEXT NOT NULL,
+          property_class TEXT NOT NULL,
+          subclass TEXT,
+          net_rentable_area_msf REAL,
+          total_vacancy_pct REAL,
+          total_availability_pct REAL,
+          direct_availability_pct REAL,
+          sublease_availability_pct REAL,
+          avg_direct_asking_rate_dollars_sf REAL,
+          current_quarter_net_absorption_sf INTEGER,
+          ytd_net_absorption_sf INTEGER,
+          deliveries_sf INTEGER,
+          under_construction_sf INTEGER,
+          imported_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS submarket_statistic (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          quarter TEXT NOT NULL,
+          submarket TEXT NOT NULL,
+          net_rentable_area_msf REAL,
+          total_vacancy_pct REAL,
+          total_availability_pct REAL,
+          direct_availability_pct REAL,
+          sublease_availability_pct REAL,
+          avg_direct_asking_rate_dollars_sf REAL,
+          current_quarter_net_absorption_sf INTEGER,
+          ytd_net_absorption_sf INTEGER,
+          deliveries_sf INTEGER,
+          under_construction_sf INTEGER,
+          imported_at TEXT NOT NULL
+        );
+      `)
+    }
+  },
+  {
+    id: '0003-properties-and-leases',
+    up: (db) => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS property (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          address TEXT,
+          submarket TEXT,
+          property_class TEXT,
+          rsf INTEGER,
+          floors INTEGER,
+          year_built INTEGER,
+          imported_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS lease (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          property_id TEXT NOT NULL,
+          tenant TEXT NOT NULL,
+          suite TEXT,
+          floor INTEGER,
+          rsf INTEGER,
+          lease_type TEXT,
+          start_date TEXT,
+          expiration_date TEXT,
+          rent_dollars_sf REAL,
+          status TEXT,
+          imported_at TEXT NOT NULL,
+          FOREIGN KEY (property_id) REFERENCES property(id)
+        );
+      `)
+    }
+  },
+  {
+    id: '0004-source-files',
+    up: (db) => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS source_file (
+          id TEXT PRIMARY KEY,
+          filename TEXT NOT NULL,
+          file_type TEXT,
+          ingestion_date TEXT NOT NULL,
+          hash TEXT NOT NULL,
+          is_confidential INTEGER NOT NULL DEFAULT 1,
+          size_bytes INTEGER NOT NULL,
+          relative_path TEXT NOT NULL
+        );
+      `)
+    }
+  }
+]
+
 export function openWorkspaceDb(workspaceId: string): Database.Database {
   const dbPath = getWorkspaceDbPath(workspaceId)
   mkdirSync(dirname(dbPath), { recursive: true })
@@ -28,22 +145,30 @@ export function openWorkspaceDb(workspaceId: string): Database.Database {
 
 function initWorkspaceSchema(db: Database.Database): void {
   db.exec(`
-    CREATE TABLE IF NOT EXISTS workspace (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      market TEXT NOT NULL,
-      property_type TEXT NOT NULL,
-      current_quarter TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL,
-      settings TEXT NOT NULL DEFAULT '{}'
-    );
-
     CREATE TABLE IF NOT EXISTS _migrations (
       id TEXT PRIMARY KEY,
       applied_at TEXT NOT NULL
     );
   `)
+
+  const applied = new Set(
+    db
+      .prepare('SELECT id FROM _migrations')
+      .all()
+      .map((row) => (row as { id: string }).id)
+  )
+
+  const insertMigration = db.prepare(
+    'INSERT INTO _migrations (id, applied_at) VALUES (?, ?)'
+  )
+
+  for (const migration of MIGRATIONS) {
+    if (applied.has(migration.id)) continue
+    db.transaction(() => {
+      migration.up(db)
+      insertMigration.run(migration.id, new Date().toISOString())
+    })()
+  }
 }
 
 export function readWorkspaceRow(db: Database.Database): WorkspaceRow | null {

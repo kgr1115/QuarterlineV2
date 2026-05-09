@@ -46,6 +46,16 @@ Design notes: clean white background, minimal CBRE branding (logo + accent
 color), two-column layout for narrative+chart pages, full-width tables, muted
 color palette (teal/charcoal/gold). Monospaced tabular numerics in data tables.
 
+## Sample Import Fixtures
+
+`samples/` contains small CSV and JSON files used to smoke-test the M5 data
+ingestion path. The numbers are illustrative, not real CBRE data — they
+exercise the importers without distributing the source PDF's content.
+
+- `samples/atlanta-market-stats-q1-2026.csv` — market statistics by class.
+- `samples/atlanta-submarket-stats-q1-2026.csv` — submarket statistics.
+- `samples/atlanta-properties-leases.json` — property + lease objects.
+
 ## Usage Rules
 
 - Treat reference artifacts as the quality bar and structural benchmark for

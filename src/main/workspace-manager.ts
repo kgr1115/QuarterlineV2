@@ -7,7 +7,7 @@ import {
   getWorkspaceManifestPath,
   getWorkspacesRoot
 } from './paths'
-import { renderWorkspaceManifest } from './workspace-manifest'
+import { computeDataSummary, renderWorkspaceManifest } from './workspace-manifest'
 import {
   insertWorkspaceRow,
   openWorkspaceDb,
@@ -16,6 +16,7 @@ import {
   type WorkspaceRow
 } from './workspace-db'
 import { updateAppConfig } from './app-config'
+import { exportAll } from './data-export'
 
 export type Workspace = {
   id: string
@@ -120,17 +121,33 @@ function ensureWorkspaceFolders(id: string): void {
   }
 }
 
-function writeManifest(workspace: Workspace): void {
+function writeManifest(workspace: Workspace, db?: Database.Database): void {
   const manifestPath = getWorkspaceManifestPath(workspace.id)
   mkdirSync(dirname(manifestPath), { recursive: true })
-  const content = renderWorkspaceManifest({
-    name: workspace.name,
-    market: workspace.market,
-    propertyType: workspace.propertyType,
-    quarter: workspace.currentQuarter,
-    lastUpdated: workspace.updatedAt
-  })
+  const summary = db ? computeDataSummary(db, workspace.currentQuarter) : undefined
+  const content = renderWorkspaceManifest(
+    {
+      name: workspace.name,
+      market: workspace.market,
+      propertyType: workspace.propertyType,
+      quarter: workspace.currentQuarter,
+      lastUpdated: workspace.updatedAt
+    },
+    summary
+  )
   writeFileSync(manifestPath, content, 'utf8')
+}
+
+export function refreshWorkspaceArtifacts(): void {
+  const workspace = getActiveWorkspace()
+  const db = activeDb
+  if (!workspace || !db) return
+  touchWorkspace(db, workspace.id)
+  const fresh = readWorkspaceRow(db)
+  if (!fresh) return
+  const next = rowToWorkspace(fresh)
+  exportAll(db, next)
+  writeManifest(next, db)
 }
 
 export function createWorkspace(input: WorkspaceCreateInput): Workspace {
@@ -186,7 +203,8 @@ export function openWorkspace(id: string): Workspace {
   if (!fresh) throw new Error(`Workspace "${id}" disappeared during open`)
 
   const workspace = rowToWorkspace(fresh)
-  writeManifest(workspace)
+  exportAll(activeDb!, workspace)
+  writeManifest(workspace, activeDb!)
   updateAppConfig({ lastWorkspaceId: id })
   return workspace
 }

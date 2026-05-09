@@ -6,39 +6,64 @@ Date: 2026-05-09
 
 - Milestones 0-3: **Complete.**
 - Milestone 4 (Workspace Management and Navigation): **In progress** —
-  implementation done, pending Windows smoke test.
+  implementation done, awaiting Windows smoke test.
+- Milestone 5 (Data Ingestion and Storage): **In progress** —
+  implementation done, awaiting Windows smoke test.
 
-The Electron scaffold runs. Workspace lifecycle is implemented: analysts can
-create, open, switch, and close workspaces through the sidebar switcher and
-the new-workspace dialog. Each workspace creates its folder under
-`~/.quarterline/workspaces/<slug>/` with `WORKSPACE.md`, a per-workspace
-SQLite database, and the AI-bridge subfolder layout. App config persists the
-last opened workspace and window state across launches.
+The Electron scaffold runs. Workspaces persist under `~/.quarterline/`.
+Imports (CSV market/submarket statistics, JSON property+lease data, file
+ingestion into `sources/`) drive a Data Studio view in the renderer with
+sub-tabs and tabular numerics. Each successful import re-exports
+`data/*.json` per the AI bridge spec and refreshes the WORKSPACE.md
+manifest's "Current Data Summary".
 
 ## Immediate Priorities
 
-1. **Smoke-test M4 on Windows.**
-   - Run `npm start`, confirm the empty-state card.
-   - Create "Atlanta Office Q1 2026"; confirm the folder appears under
-     `%USERPROFILE%\.quarterline\workspaces\atlanta-office-q1-2026\` with
-     `WORKSPACE.md`, `workspace.db`, and the subfolders.
-   - Switch / close / reopen workspaces via the sidebar switcher.
-   - Close the app and relaunch; confirm last workspace and window position
-     restore.
-   - Report any deltas; if clean, promote M4 status to **Complete** and add
-     a decision-log entry.
+1. **Smoke-test M4 + M5 on Windows.**
 
-2. **Begin Milestone 5 (Data Ingestion and Storage)** once M4 is verified.
-   - CSV import for market statistics.
-   - JSON import for property and lease data.
-   - SQLite schema for entity tables from `docs/data-model.md`.
-   - Auto-export to `data/*.json` for the AI bridge.
-   - Source-file handling with confidentiality flag.
-   - Basic data studio view.
+   Workspace lifecycle (M4):
+   - `npm start`, see the empty-state card.
+   - Create "Atlanta Office Q1 2026"; folder appears under
+     `%USERPROFILE%\.quarterline\workspaces\atlanta-office-q1-2026\`.
+   - Switch / close / reopen via the sidebar switcher.
+   - Restart app → window position and last workspace restore.
+
+   Data ingestion (M5), with the Atlanta workspace open:
+   - Open the "Data Studio" sidebar item.
+   - Click **Import market stats CSV**, pick
+     `docs/reference-artifacts/samples/atlanta-market-stats-q1-2026.csv`.
+     Expect 4 rows in the Market Stats tab; verify
+     `<workspace>/data/market-statistics.json` exists with the schema.
+   - **Import submarket stats CSV** with the submarket sample → 5 rows.
+   - **Import property / lease JSON** with the Atlanta JSON sample →
+     3 properties, 3 leases. Verify `data/property-data.json` and
+     `data/lease-data.json` are generated.
+   - **Add source file(s)** with any local file → appears in Source Files
+     tab; lives under `<workspace>/sources/`; is **not** referenced in
+     `data/*.json`.
+   - Open `WORKSPACE.md`; "Current Data Summary" shows the row counts and
+     headline metrics.
+   - Re-importing the same CSV replaces the quarter's rows (no
+     duplicates).
+   - Importing a malformed CSV (delete a required column) shows a clear
+     validation banner with row/column details.
+
+   If clean, promote M4 and M5 to **Complete** in `docs/milestones.md`,
+   add decision-log entries, and start M6.
+
+2. **Begin Milestone 6 (Analysis Modules)** once M4 + M5 are verified.
+   - Replace placeholder module cards with real modules driven by
+     imported data.
+   - AI synthesis cards (initially manually authored, M7 wires AI).
+   - 2D market map with submarket boundaries.
+   - 2D stacking plan for a selected property.
+   - Financial table matching the CBRE column structure.
+   - What-if scenario controls.
+   - Pin-to-report wiring (M8 closes the loop with assembly).
 
 ## Open Decisions Still to Resolve
 
-- Source-file retention and cleanup rules (M5/M9).
+- Source-file retention and cleanup rules (M9).
 - Encryption expectations for source files at rest (M9).
 - Workspace backup and restore model (post-MVP).
 
@@ -46,10 +71,16 @@ last opened workspace and window state across launches.
 
 - Electron app shell: main / preload / renderer split.
 - Workspace lifecycle: create, list, open, close, switch.
-- Persistent app config (`~/.quarterline/config.json`).
-- Per-workspace SQLite (`workspace.db`) with `workspace` table.
-- WORKSPACE.md manifest generator (matches `docs/ai-bridge-spec.md`).
-- React workspace context, sidebar switcher, create-workspace dialog,
-  empty-state card, status bar with workspace context, filter bar wired to
-  workspace.
+- Per-workspace SQLite with migration runner; tables for `workspace`,
+  `market_statistic`, `submarket_statistic`, `property`, `lease`,
+  `source_file`.
+- CSV import (`csv-parse`) for market and submarket statistics.
+- JSON import for property + lease data.
+- Source file ingestion with sha256 dedup and confidentiality flag.
+- Data export to `data/*.json` after each import (matches
+  `docs/ai-bridge-spec.md`).
+- WORKSPACE.md manifest with auto-generated "Current Data Summary".
+- Renderer: workspace context, sidebar routing, Data Studio view with
+  five sub-tabs and import actions, validation banner.
+- Sample import fixtures under `docs/reference-artifacts/samples/`.
 - ESLint + Prettier, Windows packaging via electron-builder.
