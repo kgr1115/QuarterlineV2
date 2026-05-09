@@ -9,8 +9,8 @@ so each builds on the last. No V1 milestone history applies.
 
 ## Current Phase
 
-Status: Implementation. Milestones 0-5 complete. Milestone 6 (Analysis
-Modules) is **in progress**.
+Status: Implementation. Milestones 0-6 complete. Milestone 7 (AI
+Integration) is next.
 
 ## Milestone Authoring Rules
 
@@ -299,9 +299,11 @@ Goal: Build the three workspace tiers with real data.
 
 Dependencies: Milestone 5.
 
-Status: **In progress.** Started 2026-05-09. All six modules implemented
-the same day; awaiting user GUI walkthrough on Windows to promote to
-**Complete**.
+Status: **Complete.** Verified 2026-05-09 (GUI walkthrough on Windows
+confirmed all six modules render and respond correctly with the
+imported Atlanta data; two issues found and fixed: missing CSP
+allowance for OSM tiles, and scenario chart layout that hid the
+interest-rate / cap-rate impact).
 
 Tech choices (see `docs/decision-log.md`):
 
@@ -311,7 +313,7 @@ Tech choices (see `docs/decision-log.md`):
   the five submarkets in the sample data; real boundary library is a
   later concern (see `docs/market-boundary-library.md`).
 
-Work to date:
+Deliverables:
 
 - Schema migration `0005-synthesis-cards-and-scenarios` adds
   `ai_synthesis_card`, `scenario`, and `report_pin` tables.
@@ -342,16 +344,33 @@ Work to date:
     By-Submarket toggle, sticky header, weighted-average totals
     footer, pin button.
   - `ScenarioControls.tsx` — three sliders (interest-rate shift,
-    rent growth, cap-rate shift), ECharts line chart showing actual
-    vs. simulated asking rate over 8 quarters, save / update /
-    select-existing scenario flow, pin button.
+    rent growth, cap-rate shift), ECharts dual-axis chart with rent
+    curve and an Implied Value Index curve. The value index combines
+    all three drivers (rent growth lifts top-line, cap-rate shift
+    compresses asset value, rate shift drags via debt service).
+    Save / update / select-existing scenario flow, pin button.
 - WorkspaceArea now composes: KeyMetricsBanner above three tier rows
   (synthesis cards, then map+stacking, then financial+scenario).
 - Sample asset: bundled `src/renderer/src/data/atlanta-submarkets.geojson`
   with five hand-authored simplified polygons; copy lives under
   `docs/reference-artifacts/samples/` as a documented fixture.
-- Verified: `npm run build` clean, `npm run smoke-test` still 31/31
-  (migrations apply cleanly on top of existing M4/M5 workspaces).
+
+Acceptance criteria (all met 2026-05-09):
+
+- Key metrics banner shows live values (availability ~21%, net absorption
+  ~1K SF, asking rate ~$43.50/SF) computed from the imported Atlanta
+  market stats.
+- Atlanta submarket polygons render on a Leaflet map with OSM tile
+  basemap; clicking a polygon opens a detail panel.
+- Stacking plan renders floors and tenant cells for a selected
+  property with proper occupancy coloring and hover tooltips.
+- Financial table renders the imported rows with weighted-average
+  totals; the By-Submarket toggle works.
+- All three scenario sliders visibly move the chart (rent growth
+  moves the indigo rent line; all three move the magenta value-index
+  line on the right axis).
+- Pin buttons toggle entries in the `report_pin` table.
+- `npm run smoke-test` still 31/31 (migrations apply cleanly).
 
 Scope:
 

@@ -659,3 +659,49 @@ work. Mark the file clearly as a sample.
 
 Follow-up: When the boundary library lands, swap the GeoJSON source
 for the canonical polygons. The map module code stays unchanged.
+
+## Milestone 6 Complete: Analysis Modules
+
+Decision: Accept the six analysis modules as the Portfolio view's
+canonical layout for the rest of the MVP.
+
+Date: 2026-05-09
+
+Owner: Chief Implementation Agent + Project Owner
+
+Context: M6 acceptance criteria were met. Live walkthrough on Windows
+confirmed all six modules render and respond correctly with the
+imported Atlanta data. Two issues surfaced and were fixed before
+acceptance:
+
+- The renderer's CSP was missing an `img-src` allowance for OSM tile
+  servers, so map tiles silently failed to load. Added explicit
+  `img-src` and `connect-src` allowances.
+- The scenario chart only plotted the `rentGrowth`-driven rent series,
+  so the interest-rate and cap-rate sliders had no visible effect.
+  Reworked: the chart now plots a dual-axis combo of rent (left axis,
+  $/SF) plus an "Implied Value Index" (right axis), where the value
+  index combines all three drivers. Repositioned the legend to the
+  bottom and stacked the controls vertically above the chart so the
+  panel is no longer cramped.
+
+Decision made: Lock in the layout — KeyMetricsBanner above three tier
+rows (synthesis cards, then map + stacking, then financial + scenario).
+Lock in the pin-to-report contract (`report_pin` table with
+module_type + module_ref). M8 (report assembly) reads from this table.
+
+Reasoning: The walkthrough confirmed the six modules visually compose
+the Portfolio view as the design concept intended. Locking the layout
+and pin contract now lets M7 wire AI generation behind the same module
+shells, and M8 assemble reports from the same pin records.
+
+Risks:
+
+- The Implied Value Index formula is illustrative, not a vetted CRE
+  valuation model. Calling it "Implied" rather than "Projected" sets
+  expectations honestly. When a real cap-rate model is needed, swap
+  the formula behind the same series.
+- Bundle size grew to ~3.8MB from ECharts + Leaflet. Inside Electron
+  this is fine; if web distribution ever happens, tree-shake ECharts.
+
+Follow-up: Begin Milestone 7 (AI Integration).

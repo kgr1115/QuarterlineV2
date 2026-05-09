@@ -5,10 +5,9 @@ Date: 2026-05-09
 ## Current Product State
 
 QuarterlineV2 is a downloadable desktop app for institutional CRE research
-and reporting. Implementation is underway. Milestones 0-5 are complete.
-The data layer (workspace lifecycle + CSV/JSON import + source ingestion +
-AI-bridge JSON exports) is fully verified end-to-end. Milestone 6
-(Analysis Modules) is next.
+and reporting. Implementation is underway. Milestones 0-6 are complete.
+The Portfolio view renders six real analysis modules driven by imported
+data. Milestone 7 (AI Integration) is next.
 
 ## Resolved Decisions (see `docs/decision-log.md`)
 
@@ -47,7 +46,7 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
 
 ## Current Technical State
 
-- **Milestones 0-5 complete and verified.**
+- **Milestones 0-6 complete and verified.**
 - Project structure: `src/main/`, `src/preload/`, `src/renderer/`, `src/shared/`.
 - Main process modules:
   - `index.ts` — window lifecycle, window-state save/restore, last-workspace
@@ -103,6 +102,10 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
 - **M5**: Data ingestion (CSV market/submarket stats, JSON property+lease,
   source file ingestion with sha256 dedup, AI-bridge JSON exports,
   Data Studio view).
+- **M6**: Analysis modules (key metrics banner, synthesis cards with
+  manual-author flow, Leaflet 2D market map, stacking plan, CBRE-style
+  financial table, ECharts dual-axis scenario panel, pin-to-report
+  contract via `report_pin` table).
 
 ## Required Reading For Next Agent
 
@@ -123,13 +126,18 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
 
 ## Active Milestone
 
-**Milestone 6 (Analysis Modules)** is next. M6 replaces the placeholder
-module cards in the Portfolio view with real modules driven by data
-already imported in M5: AI synthesis cards (manual-author path first),
-2D market map with submarket boundaries, 2D stacking plan, financial
-table matching the CBRE column structure, what-if scenario controls,
-and a key-metrics banner. See `docs/milestones.md` for the full scope.
+**Milestone 7 (AI Integration)** is next. Two tracks land here:
 
-Decisions to make as M6 starts: 2D map library (Mapbox GL JS vs.
-Leaflet vs. d3-geo), charting library, and the source for Atlanta
-submarket boundary polygons.
+- **Built-in AI**: Anthropic / OpenAI provider configuration in
+  Settings, secure API-key storage, synthesis-card generation from
+  market data, narrative drafting for report sections. Graceful
+  degradation when no provider is configured.
+- **External AI bridge**: detect external changes to `narratives/` and
+  `notes/` on focus / refresh; preview diffs and import changes.
+
+Decisions to make as M7 starts:
+
+- Anthropic SDK vs. OpenAI SDK first (or both via a small adapter).
+- API key storage: Electron `safeStorage` keychain vs. plaintext in
+  `~/.quarterline/config.json`. Strongly favor `safeStorage`.
+- Synthesis card prompt design.
