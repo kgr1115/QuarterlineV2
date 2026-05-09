@@ -9,9 +9,8 @@ so each builds on the last. No V1 milestone history applies.
 
 ## Current Phase
 
-Status: Implementation. Milestones 0-3 complete; M4 (Workspace Management
-and Navigation) implementation landed and is awaiting Windows smoke test;
-M5 (Data Ingestion and Storage) is **in progress** in parallel.
+Status: Implementation. Milestones 0-5 complete. Milestone 6 (Analysis
+Modules) is next.
 
 ## Milestone Authoring Rules
 
@@ -133,11 +132,10 @@ Goal: Multi-workspace creation, persistence, and navigation.
 
 Dependencies: Milestone 3.
 
-Status: **In progress.** Started 2026-05-09. Backend verified by automated
-smoke test the same day (`npm run smoke-test`, 31/31 checks). Awaiting
-human GUI walkthrough to promote to **Complete**.
+Status: **Complete.** Verified 2026-05-09 (backend via
+`npm run smoke-test` 31/31, GUI via manual walkthrough on Windows).
 
-Work to date:
+Deliverables:
 
 - Workspace storage rooted at `~/.quarterline/workspaces/<slug>/` per
   `docs/data-model.md` (decision recorded in `docs/decision-log.md`).
@@ -164,39 +162,20 @@ Work to date:
 - `src/main/index.ts` saves window bounds on close and restores them on
   launch; restores the last opened workspace if present.
 
-Verified (automated, 2026-05-09):
+Acceptance criteria (all met 2026-05-09):
 
-- `npm run build` and `npx tsc --noEmit` clean.
-- App launches via `npm start` without errors (main + preload + renderer
-  bundles built; dev server up).
-- `npm run smoke-test` (Electron-runtime test): workspace creation produces
-  the full folder layout, `WORKSPACE.md` and `workspace.db` are written,
-  workspace can be opened, the workspace context block in `WORKSPACE.md`
-  matches the inputs.
-
-Pending verification (manual GUI walkthrough):
-
-- Sidebar workspace switcher dropdown opens and shows the workspaces.
-- "+ New workspace" modal opens, inputs validate, submit creates the
-  workspace and closes the modal.
-- Switching between workspaces loads the correct context (status bar and
-  filter bar update live).
-- Closing the app and reopening restores the last opened workspace and
-  the window's bounds.
-- "Close current workspace" returns to the empty-state card.
-
-Scope:
-
-- Workspace creation flow (name, market, property type, quarter).
-- Workspace list in sidebar with switcher.
-- Workspace folder creation on disk (SQLite + file structure from
-  `docs/data-model.md`).
-- WORKSPACE.md manifest generation (from `docs/ai-bridge-spec.md`).
-- Workspace open/close/switch.
-- Portfolio sidebar navigation (Portfolio, Assets, Reports, etc.).
-- Global filter bar (Market Level / Property Level, market, quarter, type).
-- Status bar with workspace name and save status.
-- Window state persistence (size, position, last workspace).
+- Analyst created "Atlanta Office Q2 2026" through the create-workspace
+  modal — the workspace appeared in the sidebar switcher.
+- Switching to the workspace loaded the context (status bar and filter
+  bar updated live with market, quarter, property type).
+- Closing the app and relaunching restored the workspace and window
+  bounds.
+- `WORKSPACE.md` exists in the workspace folder with the correct context
+  block.
+- Folder layout (`data/`, `narratives/`, `notes/`, `sources/`, `exports/`,
+  `.quarterline/`) created at workspace creation time.
+- `npm run smoke-test` (Electron-runtime, 31/31 checks) covers the
+  programmatic acceptance.
 
 Non-goals:
 
@@ -224,11 +203,10 @@ Goal: Import market data from CSV/JSON into a workspace.
 
 Dependencies: Milestone 4.
 
-Status: **In progress.** Started 2026-05-09. Backend verified by automated
-smoke test the same day (`npm run smoke-test`, 31/31 checks). Awaiting
-human GUI walkthrough to promote to **Complete**.
+Status: **Complete.** Verified 2026-05-09 (backend via
+`npm run smoke-test` 31/31, GUI via manual walkthrough on Windows).
 
-Work to date:
+Deliverables:
 
 - Per-workspace SQLite schema extended with `market_statistic`,
   `submarket_statistic`, `property`, `lease`, and `source_file` tables.
@@ -263,27 +241,25 @@ Work to date:
 - Sample fixtures added under `docs/reference-artifacts/samples/` for
   smoke testing.
 
-Verified (automated, 2026-05-09):
+Acceptance criteria (all met 2026-05-09):
 
-- `npm run build` and `npx tsc --noEmit` clean.
-- `npm run smoke-test` (Electron-runtime test) covers the full data path:
-  market stats CSV import (4 rows), submarket stats CSV import (5 rows),
-  property/lease JSON import (3 + 3), source file ingestion (with sha256
-  dedup), `data/*.json` exports written and parseable, `WORKSPACE.md`
-  "Current Data Summary" populated with row counts and headline metrics,
-  source file paths are NOT exposed in `data/*.json` or `WORKSPACE.md`,
-  and a malformed CSV (missing required `Property Class` column) is
-  rejected with header-level errors. 31/31 checks passed.
-
-Pending verification (manual GUI walkthrough):
-
-- Data Studio sidebar nav routes to the Data Studio view.
-- Each "Import …" button opens a file picker and runs the import.
-- Success banner appears with the row counts; error banner shows row /
-  column detail when an import fails.
-- Each tab's table renders the imported rows with proper formatting
-  (tabular numerics, parenthesized negatives).
-- Source Files tab shows the file metadata.
+- Analyst imported the Atlanta market statistics CSV and saw 4 rows in
+  the Data Studio Market Stats tab. `data/market-statistics.json` was
+  generated matching the schema in `docs/ai-bridge-spec.md`.
+- Submarket stats CSV import produced 5 rows and
+  `data/submarket-statistics.json`.
+- Property + lease JSON import produced 3 properties and 3 leases plus
+  `data/property-data.json` and `data/lease-data.json`.
+- `WORKSPACE.md` "Current Data Summary" auto-populated with row counts,
+  averaged headline metrics, and top submarkets.
+- Data persisted across app restarts (verified by relaunching and seeing
+  the same rows).
+- A malformed CSV (missing required `Property Class` column) was
+  rejected with header-level errors and no DB writes.
+- Source file ingestion path lands files under `<workspace>/sources/`
+  and never exposes them in `data/*.json` or `WORKSPACE.md`.
+- `npm run smoke-test` (Electron-runtime, 31/31 checks) covers the
+  programmatic acceptance.
 
 Scope:
 

@@ -484,3 +484,68 @@ under sha256 in practice) would be conflated — acceptable.
 Follow-up: When source-file retention policy lands (an open data-model
 decision), the policy should be expressed in terms of hash, ingestion
 date, and confidentiality flag rather than filename.
+
+## Milestone 4 Complete: Workspace Management and Navigation
+
+Decision: Accept the workspace lifecycle implementation as the foundation
+for all future per-workspace work.
+
+Date: 2026-05-09
+
+Owner: Chief Implementation Agent
+
+Context: M4 acceptance criteria were met. Analyst created
+"Atlanta Office Q2 2026" via the GUI; folder layout was correct;
+status/filter bars updated; relaunch restored workspace and window
+state; backend verified by `npm run smoke-test` (31/31 checks).
+
+Decision made: Lock in the active-workspace state model
+(`workspace-manager.ts`), the slug-based folder ID format, and the
+~/.quarterline/ root location. Future milestones extend the per-workspace
+SQLite schema and the WORKSPACE.md manifest, but do not move workspace
+storage or change the active-workspace state pattern.
+
+Reasoning: The acceptance walkthrough exercised every mutation path
+(create, open, switch, close, restart-restore). Locking now means M5
+onward could start without re-litigating storage location or state
+ownership.
+
+Risks: When team sync lands (post-MVP), the local folder slug needs a
+parallel sync_id (UUID). That follow-up was already recorded in the
+"Workspace ID Format" decision and is unchanged.
+
+Follow-up: Begin Milestone 5 (delivered same-day; see next entry).
+
+## Milestone 5 Complete: Data Ingestion and Storage
+
+Decision: Accept the data ingestion pipeline (CSV / JSON imports, source
+file ingestion, AI-bridge JSON exports, Data Studio view) as the data
+layer for M6 analysis modules.
+
+Date: 2026-05-09
+
+Owner: Chief Implementation Agent + Chief Backend and Data Agent
+
+Context: M5 acceptance criteria were met. CSV imports for market and
+submarket stats produced the expected rows and `data/*.json` exports;
+the property + lease JSON import produced the expected rows; source file
+ingestion landed files under `sources/` without exposing paths in
+`data/*.json` or `WORKSPACE.md`; data persisted across app restarts; a
+malformed CSV was rejected with clear errors. `npm run smoke-test`
+(31/31 Electron-runtime checks) covers the programmatic verification.
+
+Decision made: Treat the per-workspace tables (`market_statistic`,
+`submarket_statistic`, `property`, `lease`, `source_file`), the AI-bridge
+JSON schema in `docs/ai-bridge-spec.md`, and the Data Studio sub-tab
+layout as stable foundations. M6 modules read from these tables.
+
+Reasoning: The data shapes match `docs/data-model.md` and the
+JSON contracts match the schemas already documented in
+`docs/ai-bridge-spec.md`. Locking now lets the M6 modules render
+deterministically without needing schema rework.
+
+Risks: The CBRE column structure may evolve in real client data,
+requiring header-tolerant alias additions to `csv-import.ts`. That's a
+small, additive change rather than a structural one.
+
+Follow-up: Begin Milestone 6 (Analysis Modules).

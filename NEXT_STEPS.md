@@ -4,57 +4,44 @@ Date: 2026-05-09
 
 ## Current State
 
-- Milestones 0-3: **Complete.**
-- Milestone 4 (Workspace Management and Navigation): **In progress** —
-  backend verified by `npm run smoke-test` (31/31 checks); GUI walkthrough
-  pending.
-- Milestone 5 (Data Ingestion and Storage): **In progress** — backend
-  verified by `npm run smoke-test` (31/31 checks); GUI walkthrough pending.
+- Milestones 0-5: **Complete.**
+- Milestone 6 (Analysis Modules): **Next.**
 
-The data layer is proven end-to-end via `npm run smoke-test`. What remains
-is interactive UI verification — clicking through the workspace switcher,
-the create-workspace modal, the Data Studio import buttons, and confirming
-the visuals render correctly.
+The Electron scaffold runs. Workspaces persist under `~/.quarterline/`
+and survive app restarts. CSV/JSON imports load market statistics,
+submarket statistics, properties, and leases into a per-workspace SQLite
+database, while source files are ingested into `sources/` with sha256
+dedup. After every import, `data/*.json` and `WORKSPACE.md` "Current
+Data Summary" auto-regenerate per `docs/ai-bridge-spec.md`. The Data
+Studio view in the renderer browses all imported tables.
 
 ## Immediate Priorities
 
-1. **Run the GUI walkthrough.**
+1. **Begin Milestone 6 (Analysis Modules).** Replace placeholder module
+   cards with real modules driven by imported data.
 
-   Run `npm start` and check:
+   - **AI synthesis cards** (tier 1): render cards from
+     `AISynthesisCard` records. Manual authoring path first; M7 wires
+     in built-in AI generation.
+   - **2D market map** (tier 2 left): submarket boundaries colored by a
+     selected metric. Mapbox or Leaflet — decision pending.
+   - **2D stacking plan** (tier 2 right): floor grid for a selected
+     property, colored by occupancy.
+   - **Financial table** (tier 3 left): market statistics table matching
+     the CBRE reference column structure (already imported in M5).
+   - **What-if scenario controls** (tier 3 right): sliders for interest
+     rate, rent growth, cap rate shift; chart showing actual vs.
+     simulated curves.
+   - **Key metrics banner**: 5 hero metrics with directional arrows.
+   - **Pin-to-report**: action on each module that registers it for the
+     M8 report assembly.
 
-   M4 (workspace lifecycle):
-   - Sidebar switcher dropdown opens; "+ New workspace" launches the modal.
-   - Create "Atlanta Office Q1 2026" via the modal.
-   - Status bar and filter bar update with the workspace context.
-   - Close and reopen the app — last workspace and window position
-     restore.
-   - "Close current workspace" returns to the empty-state card.
-
-   M5 (data ingestion UI):
-   - Click sidebar **Data Studio** — view changes.
-   - **Import market stats CSV** with
-     `docs/reference-artifacts/samples/atlanta-market-stats-q1-2026.csv` →
-     green banner, Market Stats tab populated.
-   - **Import submarket stats CSV** with
-     `atlanta-submarket-stats-q1-2026.csv` → 5 rows.
-   - **Import property / lease JSON** with `atlanta-properties-leases.json`
-     → 3 properties, 3 leases.
-   - **Add source file(s)** with any local file → Source Files tab shows it.
-   - Open `WORKSPACE.md` and confirm the "Current Data Summary" reflects
-     the imports.
-
-   If clean, promote M4 and M5 to **Complete** in `docs/milestones.md`,
-   add a verification date, and start M6.
-
-2. **Begin Milestone 6 (Analysis Modules)** once M4 + M5 are verified.
-   - Replace placeholder module cards with real modules driven by
-     imported data.
-   - AI synthesis cards (initially manually authored, M7 wires AI).
-   - 2D market map with submarket boundaries.
-   - 2D stacking plan for a selected property.
-   - Financial table matching the CBRE column structure.
-   - What-if scenario controls.
-   - Pin-to-report wiring (M8 closes the loop with assembly).
+2. **Decisions to make as M6 starts:**
+   - 2D map library (Mapbox GL JS vs. Leaflet vs. d3-geo).
+   - Charting library for the financial table and scenario chart
+     (Recharts, Visx, Apache ECharts, hand-rolled with d3).
+   - Submarket boundary data source for the Atlanta sample
+     (placeholder polygons vs. simplified GeoJSON).
 
 ## Open Decisions Still to Resolve
 
@@ -65,7 +52,7 @@ the visuals render correctly.
 ## What Exists
 
 - Electron app shell: main / preload / renderer split.
-- Workspace lifecycle: create, list, open, close, switch.
+- Workspace lifecycle: create, list, open, close, switch, restart-restore.
 - Per-workspace SQLite with migration runner; tables for `workspace`,
   `market_statistic`, `submarket_statistic`, `property`, `lease`,
   `source_file`.
@@ -78,6 +65,6 @@ the visuals render correctly.
 - Renderer: workspace context, sidebar routing, Data Studio view with
   five sub-tabs and import actions, validation banner.
 - Sample import fixtures under `docs/reference-artifacts/samples/`.
-- Automated smoke test: `npm run smoke-test` runs the full data path
-  under Electron and verifies file artifacts.
+- Automated smoke test: `npm run smoke-test` (Electron-runtime, 31/31)
+  covers the data path end-to-end.
 - ESLint + Prettier, Windows packaging via electron-builder.

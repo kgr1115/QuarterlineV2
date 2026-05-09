@@ -5,10 +5,10 @@ Date: 2026-05-09
 ## Current Product State
 
 QuarterlineV2 is a downloadable desktop app for institutional CRE research
-and reporting. Implementation is underway. Milestones 0-3 are complete.
-M4 (Workspace Management and Navigation) and M5 (Data Ingestion and
-Storage) both have implementations landed and are awaiting a Windows
-smoke test before being marked complete.
+and reporting. Implementation is underway. Milestones 0-5 are complete.
+The data layer (workspace lifecycle + CSV/JSON import + source ingestion +
+AI-bridge JSON exports) is fully verified end-to-end. Milestone 6
+(Analysis Modules) is next.
 
 ## Resolved Decisions (see `docs/decision-log.md`)
 
@@ -47,7 +47,7 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
 
 ## Current Technical State
 
-- **Milestones 0-3 complete; M4 + M5 implementations landed (pending verification).**
+- **Milestones 0-5 complete and verified.**
 - Project structure: `src/main/`, `src/preload/`, `src/renderer/`, `src/shared/`.
 - Main process modules:
   - `index.ts` — window lifecycle, window-state save/restore, last-workspace
@@ -97,6 +97,12 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
   dual AI, 2D MVP, Windows-first).
 - **M2**: Design system specification (tokens, typography, layout, components).
 - **M3**: Electron scaffold (app shell, SQLite, IPC bridge, packaging pipeline).
+- **M4**: Workspace lifecycle (create/open/switch/close, slug-based folder
+  IDs, `~/.quarterline/` storage, window-state and last-workspace
+  persistence).
+- **M5**: Data ingestion (CSV market/submarket stats, JSON property+lease,
+  source file ingestion with sha256 dedup, AI-bridge JSON exports,
+  Data Studio view).
 
 ## Required Reading For Next Agent
 
@@ -115,12 +121,15 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
 13. `docs/mvp-scope.md`
 14. `docs/publication-output-spec.md`
 
-## Active Milestones
+## Active Milestone
 
-**M4 (Workspace Management and Navigation)** and **M5 (Data Ingestion and
-Storage)** are both in progress. Implementations landed 2026-05-09 and the
-data layer was verified the same day by `npm run smoke-test` (31/31
-checks). What remains is a manual GUI walkthrough. The next session should
-either run that walkthrough and promote both milestones to **Complete**,
-or start Milestone 6 (Analysis Modules) in parallel — the M6 work doesn't
-depend on the GUI verification of M4/M5.
+**Milestone 6 (Analysis Modules)** is next. M6 replaces the placeholder
+module cards in the Portfolio view with real modules driven by data
+already imported in M5: AI synthesis cards (manual-author path first),
+2D market map with submarket boundaries, 2D stacking plan, financial
+table matching the CBRE column structure, what-if scenario controls,
+and a key-metrics banner. See `docs/milestones.md` for the full scope.
+
+Decisions to make as M6 starts: 2D map library (Mapbox GL JS vs.
+Leaflet vs. d3-geo), charting library, and the source for Atlanta
+submarket boundary polygons.
