@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { WorkspaceSwitcher } from './WorkspaceSwitcher'
 
 const navItems = [
   { id: 'portfolio', label: 'Portfolio', section: 'research' },
@@ -20,7 +21,11 @@ const sections: Record<string, string> = {
   system: 'System'
 }
 
-export function Sidebar() {
+type Props = {
+  onCreateWorkspace: () => void
+}
+
+export function Sidebar({ onCreateWorkspace }: Props) {
   const [active, setActive] = useState('portfolio')
 
   const grouped = Object.entries(sections).map(([key, label]) => ({
@@ -34,6 +39,11 @@ export function Sidebar() {
         <div className="sidebar-logo">Q</div>
         <span className="sidebar-title">QuarterlineV2</span>
       </div>
+
+      <div className="sidebar-workspace">
+        <WorkspaceSwitcher onCreate={onCreateWorkspace} />
+      </div>
+
       <div className="sidebar-nav">
         {grouped.map((group) => (
           <div key={group.label}>

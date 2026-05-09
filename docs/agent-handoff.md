@@ -4,10 +4,10 @@ Date: 2026-05-09
 
 ## Current Product State
 
-QuarterlineV2 is a downloadable desktop app for institutional CRE research and
-reporting. The Electron scaffold (Milestone 3) is complete and running. The app
-shell launches on Windows with sidebar navigation, a global filter bar,
-placeholder module cards, SQLite persistence, and a typed IPC bridge.
+QuarterlineV2 is a downloadable desktop app for institutional CRE research
+and reporting. Implementation is underway. Milestones 0-3 are complete and
+M4 (Workspace Management and Navigation) has its implementation landed and
+is awaiting a Windows smoke test before being marked complete.
 
 ## Resolved Decisions (see `docs/decision-log.md`)
 
@@ -22,6 +22,9 @@ placeholder module cards, SQLite persistence, and a typed IPC bridge.
 - Target platform: **Windows first**.
 - Report quality bar: **CBRE Atlanta Office Q1 2026 report** as benchmark
   (see `docs/reference-artifacts/`).
+- Workspace storage: **`~/.quarterline/workspaces/<slug>/`** (M4 decision).
+- Workspace IDs: **kebab-case slugs of the workspace name with collision
+  suffix** (M4 decision).
 
 ## Current Design State
 
@@ -43,17 +46,29 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
 
 ## Current Technical State
 
-- **Milestone 3 is complete.** The Electron scaffold is running.
+- **Milestones 0-3 complete; M4 implementation landed (pending verification).**
 - Project structure: `src/main/`, `src/preload/`, `src/renderer/`, `src/shared/`.
-- Main process: Electron window creation, SQLite (better-sqlite3 with WAL),
-  IPC handlers (`src/main/index.ts`, `src/main/database.ts`,
-  `src/main/ipc-handlers.ts`).
-- Preload: typed IPC bridge exposing `window.quarterline` API
-  (`src/preload/index.ts`).
-- Renderer: React 19 app with sidebar, filter bar, workspace area (placeholder
-  module cards), and status bar (`src/renderer/src/`).
-- Shared: IPC channel constants and result types (`src/shared/ipc-channels.ts`).
-- Design tokens: CSS custom properties in `src/renderer/src/styles/tokens.css`.
+- Main process modules:
+  - `index.ts` — window lifecycle, window-state save/restore, last-workspace
+    restore.
+  - `paths.ts` — central path helpers for `~/.quarterline/`.
+  - `app-config.ts` — read/write `~/.quarterline/config.json`.
+  - `workspace-manager.ts` — workspace lifecycle, slug generation, folder
+    initialization, active-workspace state.
+  - `workspace-db.ts` — per-workspace SQLite schema and helpers.
+  - `workspace-manifest.ts` — `WORKSPACE.md` renderer.
+  - `ipc-handlers.ts` — registers all IPC channels.
+- Preload exposes `window.quarterline` with `ping`, `dbStatus`, `workspace.*`,
+  and `windowState.*` namespaces.
+- Renderer:
+  - `state/workspace.tsx` — `WorkspaceProvider` and `useWorkspace` hook.
+  - `components/WorkspaceSwitcher.tsx` — sidebar dropdown for switching.
+  - `components/CreateWorkspaceDialog.tsx` — modal for new workspaces.
+  - Sidebar, FilterBar, WorkspaceArea, StatusBar updated to consume the
+    workspace context.
+- Per-workspace folder layout (created on first save):
+  `WORKSPACE.md`, `workspace.db`, `data/`, `narratives/` (with `custom/`),
+  `notes/`, `sources/`, `exports/`, `.quarterline/`.
 - Build: electron-vite for dev/build, electron-builder for Windows packaging.
 - Tooling: ESLint (typescript-eslint), Prettier.
 
@@ -78,17 +93,14 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
 9. `docs/decision-log.md`
 10. `docs/architecture.md`
 11. `docs/data-model.md`
-12. `docs/mvp-scope.md`
-13. `docs/publication-output-spec.md`
+12. `docs/ai-bridge-spec.md`
+13. `docs/mvp-scope.md`
+14. `docs/publication-output-spec.md`
 
-## Recommended Next Step
+## Active Milestone
 
-Begin **Milestone 4: Workspace Management and Navigation**. See
-`docs/milestones.md` for full scope and acceptance criteria.
-
-Remaining planning decisions (can be resolved during implementation):
-
-- Source-file retention and cleanup rules.
-- Encryption for source files at rest.
-- Sync-ready identifier format.
-- Workspace backup and restore model.
+**Milestone 4: Workspace Management and Navigation** is in progress.
+Implementation landed 2026-05-09; the next agent (or this one in the next
+session) should run a Windows smoke test against the acceptance criteria in
+`docs/milestones.md`, then promote the milestone to **Complete** and start
+Milestone 5 (Data Ingestion and Storage).

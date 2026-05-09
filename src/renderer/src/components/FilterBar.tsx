@@ -1,7 +1,13 @@
 import { useState } from 'react'
+import { useWorkspace } from '../state/workspace'
 
 export function FilterBar() {
+  const { current } = useWorkspace()
   const [level, setLevel] = useState<'market' | 'property'>('market')
+
+  const marketLabel = current?.market ?? 'No workspace'
+  const quarterLabel = current?.currentQuarter ?? '—'
+  const typeLabel = current?.propertyType ?? '—'
 
   return (
     <div className="filter-bar">
@@ -22,29 +28,17 @@ export function FilterBar() {
 
       <div className="filter-group">
         <span className="filter-label">Market</span>
-        <select className="filter-select" defaultValue="">
-          <option value="" disabled>
-            Select market
-          </option>
-        </select>
+        <span className="filter-value">{marketLabel}</span>
       </div>
 
       <div className="filter-group">
         <span className="filter-label">Quarter</span>
-        <select className="filter-select" defaultValue="">
-          <option value="" disabled>
-            Select quarter
-          </option>
-        </select>
+        <span className="filter-value">{quarterLabel}</span>
       </div>
 
       <div className="filter-group">
         <span className="filter-label">Type</span>
-        <select className="filter-select" defaultValue="">
-          <option value="" disabled>
-            Property type
-          </option>
-        </select>
+        <span className="filter-value">{typeLabel}</span>
       </div>
 
       <div className="filter-spacer" />

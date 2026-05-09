@@ -10,7 +10,7 @@ so each builds on the last. No V1 milestone history applies.
 ## Current Phase
 
 Status: Implementation. Milestones 0-3 are complete. Milestone 4 (Workspace
-Management and Navigation) is next.
+Management and Navigation) is **in progress**.
 
 ## Milestone Authoring Rules
 
@@ -131,6 +131,49 @@ Owner: Chief Backend and Data Agent + Chief Product and Frontend Agent.
 Goal: Multi-workspace creation, persistence, and navigation.
 
 Dependencies: Milestone 3.
+
+Status: **In progress.** Started 2026-05-09. Implementation delivered the
+same day; awaiting Windows smoke test to promote to **Complete**.
+
+Work to date:
+
+- Workspace storage rooted at `~/.quarterline/workspaces/<slug>/` per
+  `docs/data-model.md` (decision recorded in `docs/decision-log.md`).
+- Workspace folder IDs are kebab-case slugs of the workspace name, with a
+  numeric suffix on collision (decision recorded in `docs/decision-log.md`).
+- Each workspace folder is initialized with `WORKSPACE.md` (per
+  `docs/ai-bridge-spec.md`), `workspace.db`, and the subfolders `data/`,
+  `narratives/` (with `custom/`), `notes/`, `sources/`, `exports/`, and
+  `.quarterline/`.
+- Per-workspace `workspace.db` schema: `workspace` table (id, name, market,
+  property_type, current_quarter, created_at, updated_at, settings) plus
+  `_migrations`. WAL mode and foreign keys enabled.
+- App-level config at `~/.quarterline/config.json` stores `lastWorkspaceId`
+  and `windowState` (width, height, x, y, isMaximized).
+- IPC channels: `workspace:list`, `workspace:create`, `workspace:open`,
+  `workspace:close`, `workspace:current`, `window:state:get`,
+  `window:state:save`. `db:status` now reports on the active workspace's DB.
+- Renderer: `WorkspaceProvider` React context, `WorkspaceSwitcher` in the
+  sidebar (workspace list, switch, new, close-current), modal
+  `CreateWorkspaceDialog` with name/market/property-type/quarter inputs and
+  validation, empty-state card in the workspace area when no workspace is
+  open, `FilterBar` reads market/quarter/type from the active workspace,
+  `StatusBar` shows workspace name and DB status.
+- `src/main/index.ts` saves window bounds on close and restores them on
+  launch; restores the last opened workspace if present.
+- Verified: `npm run build` and `npx tsc --noEmit` clean for both tsconfigs.
+
+Pending verification (Windows manual smoke test):
+
+- `npm start` launches and shows the empty-state card.
+- Creating "Atlanta Office Q1 2026" produces
+  `~/.quarterline/workspaces/atlanta-office-q1-2026/` with `WORKSPACE.md`,
+  `workspace.db`, and the subfolder layout.
+- The workspace appears in the sidebar switcher; switching loads the
+  context (status bar and filter bar update).
+- Closing and reopening the app restores the same workspace and window
+  position.
+- "Close current workspace" returns to the empty state.
 
 Scope:
 

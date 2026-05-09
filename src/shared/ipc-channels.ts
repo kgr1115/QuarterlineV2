@@ -1,13 +1,21 @@
 export const IpcChannels = {
-  DB_QUERY: 'db:query',
+  PING: 'app:ping',
   DB_STATUS: 'db:status',
-  PING: 'app:ping'
+
+  WORKSPACE_LIST: 'workspace:list',
+  WORKSPACE_CREATE: 'workspace:create',
+  WORKSPACE_OPEN: 'workspace:open',
+  WORKSPACE_CLOSE: 'workspace:close',
+  WORKSPACE_CURRENT: 'workspace:current',
+
+  WINDOW_STATE_GET: 'window:state:get',
+  WINDOW_STATE_SAVE: 'window:state:save'
 } as const
 
 export type DbStatusResult = {
   connected: boolean
-  path: string
-  version: string
+  path: string | null
+  version: string | null
 }
 
 export type PingResult = {
@@ -15,4 +23,29 @@ export type PingResult = {
   timestamp: number
   electronVersion: string
   nodeVersion: string
+}
+
+export type Workspace = {
+  id: string
+  name: string
+  market: string
+  propertyType: string
+  currentQuarter: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type WorkspaceCreateInput = {
+  name: string
+  market: string
+  propertyType: string
+  quarter: string
+}
+
+export type WindowState = {
+  width: number
+  height: number
+  x?: number
+  y?: number
+  isMaximized: boolean
 }

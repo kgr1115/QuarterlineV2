@@ -1,14 +1,20 @@
 import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 import { registerIpcHandlers } from './ipc-handlers'
-import { getDatabase, closeDatabase } from './database'
+import { readAppConfig, updateAppConfig } from './app-config'
+import { closeActiveWorkspace, openWorkspace } from './workspace-manager'
 
 let mainWindow: BrowserWindow | null = null
 
 function createWindow(): void {
+  const config = readAppConfig()
+  const saved = config.windowState
+
   mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 900,
+    width: saved?.width ?? 1440,
+    height: saved?.height ?? 900,
+    x: saved?.x,
+    y: saved?.y,
     minWidth: 1280,
     minHeight: 720,
     backgroundColor: '#0F172A',
@@ -21,8 +27,24 @@ function createWindow(): void {
     }
   })
 
+  if (saved?.isMaximized) mainWindow.maximize()
+
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show()
+  })
+
+  mainWindow.on('close', () => {
+    if (!mainWindow) return
+    const bounds = mainWindow.getBounds()
+    updateAppConfig({
+      windowState: {
+        width: bounds.width,
+        height: bounds.height,
+        x: bounds.x,
+        y: bounds.y,
+        isMaximized: mainWindow.isMaximized()
+      }
+    })
   })
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -37,13 +59,27 @@ function createWindow(): void {
   }
 }
 
+function restoreLastWorkspace(): void {
+  const { lastWorkspaceId } = readAppConfig()
+  if (!lastWorkspaceId) return
+  try {
+    openWorkspace(lastWorkspaceId)
+  } catch (err) {
+    console.warn(
+      `Could not restore workspace "${lastWorkspaceId}":`,
+      err instanceof Error ? err.message : err
+    )
+    updateAppConfig({ lastWorkspaceId: null })
+  }
+}
+
 app.whenReady().then(() => {
-  getDatabase()
   registerIpcHandlers()
+  restoreLastWorkspace()
   createWindow()
 })
 
 app.on('window-all-closed', () => {
-  closeDatabase()
+  closeActiveWorkspace()
   app.quit()
 })

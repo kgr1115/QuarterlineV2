@@ -317,3 +317,71 @@ Reasoning: Institutional CRE analysts predominantly use Windows workstations.
 
 Follow-up: Electron packaging should target Windows (NSIS or Squirrel installer)
 first, with Mac/Linux builds added after the MVP ships.
+
+## Workspace Storage Location
+
+Decision: Store all workspaces under `~/.quarterline/workspaces/<id>/`, with
+app-level config at `~/.quarterline/config.json`. Do not use Electron's
+per-platform `userData` path for workspace folders.
+
+Date: 2026-05-09
+
+Owner: Chief Implementation Agent
+
+Context: M4 needed a workspace storage layout. Two options: (a) Electron's
+`userData` path (`%APPDATA%/QuarterlineV2/` on Windows, `~/Library/Application
+Support/...` on macOS, `~/.config/...` on Linux) or (b) a fixed cross-platform
+path under the user's home directory.
+
+Decision made: Option (b). All workspaces and app config live under
+`~/.quarterline/`.
+
+Reasoning: The AI bridge is a folder contract — analysts need to point Claude
+Desktop, Codex, or another agent at the workspace folder. A discoverable,
+predictable path under the user's home directory makes that point-and-aim
+flow trivial. Electron's userData path varies by platform and is buried in
+appdata directories that analysts don't browse.
+
+Risks: Users who routinely change machines or sync their home directory may
+sync workspace databases. WAL mode helps but cross-machine SQLite syncing is
+a known footgun. Document this when the backup/restore model is finalized.
+
+Follow-up: Workspace portability and backup format (a remaining decision
+from `docs/data-model.md`) should preserve the relocatability of workspace
+folders.
+
+## Workspace ID Format: Slugged Folder Names
+
+Decision: Generate workspace folder IDs as kebab-case slugs of the workspace
+name, with a numeric suffix on collision (`atlanta-office-q1-2026`,
+`atlanta-office-q1-2026-2`).
+
+Date: 2026-05-09
+
+Owner: Chief Implementation Agent
+
+Context: `docs/data-model.md` listed "Sync-ready identifier format
+(UUIDs vs. prefixed IDs)" as an open decision. M4 had to commit to a folder
+naming convention.
+
+Options considered:
+
+- UUIDs (e.g., `b3f9...`): sync-safe, collision-free, but unreadable when
+  analysts browse `~/.quarterline/workspaces/` or point AI tools at the folder.
+- Slug + collision suffix: human-readable, AI-bridge-friendly, requires a
+  collision check at create time.
+- Prefixed IDs (e.g., `ws_001`): readable but uninformative.
+
+Decision made: Slug + collision suffix.
+
+Reasoning: The AI bridge depends on a folder being recognizably about a market
+and quarter. `atlanta-office-q1-2026/` is self-describing; `b3f9.../` is not.
+Collisions are cheap to handle (filesystem stat at create time).
+
+Risks: Cross-device sync conflicts (two devices creating the same slug) will
+need a real ID at sync time. The internal `workspace.id` column is a string,
+so we can migrate to a stable hash or UUID-namespaced ID later without
+restructuring data — the folder name is just the local addressing scheme.
+
+Follow-up: When team sync lands, generate a stable `workspace.sync_id` (UUID)
+separate from the local folder slug. The folder slug becomes a display alias.
