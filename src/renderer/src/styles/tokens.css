@@ -1,0 +1,65 @@
+:root {
+  /* Backgrounds */
+  --bg-app: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-surface-raised: #263548;
+  --bg-sidebar: #0c1220;
+  --bg-input: #162032;
+
+  /* Borders */
+  --border-subtle: #334155;
+  --border-focus: #6366f1;
+  --border-divider: #1e293b;
+
+  /* Text */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-inverse: #0f172a;
+
+  /* Accent and Status */
+  --accent-primary: #6366f1;
+  --accent-primary-hover: #818cf8;
+  --status-positive: #10b981;
+  --status-negative: #ef4444;
+  --status-anomaly: #f59e0b;
+  --status-expiring: #d946ef;
+
+  /* Data Visualization */
+  --viz-occupied: #6366f1;
+  --viz-vacant: #475569;
+  --viz-expiring: #d946ef;
+  --viz-chart-1: #6366f1;
+  --viz-chart-2: #10b981;
+  --viz-chart-3: #f59e0b;
+  --viz-chart-4: #d946ef;
+  --viz-grid: #1e293b;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Typography */
+  --font-interface: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-data: 'JetBrains Mono', 'Consolas', monospace;
+
+  /* Shadows */
+  --shadow-dropdown: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  /* Transitions */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-chart: 300ms;
+  --easing: cubic-bezier(0.4, 0, 0.2, 1);
+}

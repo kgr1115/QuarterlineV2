@@ -1,0 +1,16 @@
+node_modules/
+out/
+dist/
+*.node
+*.tsbuildinfo
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+
+# Per-worktree role files — local to each instance, not committed
+CLAUDE.local.md
+
+# Local Claude Code settings
+.claude/settings.local.json
