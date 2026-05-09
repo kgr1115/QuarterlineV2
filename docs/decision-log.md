@@ -837,3 +837,83 @@ cards.
 Follow-up: When narrative generation lands (M7 Phase B), use plain
 `messages.create()` (markdown is text, not JSON) with prompt caching
 on the system prompt to keep iterative narrative drafting cheap.
+
+## PDF Export: Electron printToPDF (No External Renderer)
+
+Decision: Generate the M8 report PDF by opening a hidden Electron
+`BrowserWindow`, loading the report HTML as a data URL, and calling
+`webContents.printToPDF()`. Do not depend on Puppeteer, headless
+Chrome, or wkhtmltopdf.
+
+Date: 2026-05-09
+
+Owner: Chief Reporting Agent + Chief Implementation Agent
+
+Context: M8 needs a PDF export path for the assembled report. Three
+common approaches:
+
+- Spin up Puppeteer / Playwright to drive a headless Chromium.
+- Bundle wkhtmltopdf or a similar binary.
+- Use Electron's built-in `webContents.printToPDF()` on a hidden
+  BrowserWindow.
+
+Decision made: Electron's built-in `printToPDF`.
+
+Reasoning: The app is already an Electron process — it ships with
+Chromium and the PDF rendering pipeline. Adding Puppeteer would mean
+~150MB of extra binaries (a second Chromium download); wkhtmltopdf is
+abandoned for new platforms. `printToPDF` accepts the same CSS the
+preview iframe renders, supports `@page` rules, and writes a buffer
+directly. Zero new deps, zero spawn overhead.
+
+Risks: Some advanced print CSS (running headers/footers, page-counters
+across complex flows) is less ergonomic than Puppeteer's API. Not a
+concern for a quarterly market report layout.
+
+Follow-up: If we ever support exporting reports without Electron in
+the loop (server-rendered, web-first version of QuarterlineV2), revisit
+with Puppeteer.
+
+## Report Sections: Filesystem-Backed Narratives
+
+Decision: Each report section's narrative is stored as a markdown
+file under `<workspace>/narratives/`. The `report_section` table only
+holds metadata (title, position, include flag, file path) — never the
+content.
+
+Date: 2026-05-09
+
+Owner: Chief Reporting Agent
+
+Context: Two ways to store narrative content: in SQLite as TEXT, or
+as a file on disk that SQLite references by path.
+
+Options considered:
+
+- DB-only: simple to query, but the AI bridge (M7) and external editors
+  can't see the content. The whole point of `narratives/` per the AI
+  bridge spec is co-editability.
+- File-only: human-readable, AI-readable, but requires path bookkeeping.
+- Hybrid (cache in DB, source-of-truth in file): tempting but creates
+  a sync problem.
+
+Decision made: File on disk, full path stored in `report_section.narrative_path`.
+The DB is metadata only.
+
+Reasoning: The AI bridge contract (`docs/ai-bridge-spec.md`) explicitly
+designates `narratives/*.md` as files external AI tools can write.
+Storing narratives in the DB would break that contract — Claude
+Desktop or any external agent has no SQLite. File-on-disk is the
+simplest correct answer; the M7 external-bridge change-detector
+already handles the "external editor wrote to my narrative file"
+case.
+
+Risks: A user can rename or delete narrative files outside the app,
+leaving the metadata pointing at a missing path. The renderer treats
+missing files as empty narrative (no error), which is the right
+recovery.
+
+Follow-up: When report drafts (multiple versions of the same report)
+are added post-MVP, the narrative path should include the draft ID
+(e.g. `narratives/<draft-id>/market-overview.md`) so drafts don't
+clobber each other's narratives.

@@ -7,39 +7,48 @@ Date: 2026-05-09
 - Milestones 0-6: **Complete.**
 - Milestone 7 (AI Integration): **In progress** — implementation landed,
   pending live API call by the user.
+- Milestone 8 (Report Assembly and Export): **In progress** —
+  implementation landed, pending GUI walkthrough on Windows.
 
-The Portfolio view now offers built-in AI synthesis card generation
-through Anthropic (`claude-opus-4-7` by default), with the API key
-encrypted via Electron's `safeStorage`. The external AI bridge detects
-changes to `narratives/` and `notes/` markdown files on focus and shows
-a diff-preview banner. The data layer is unchanged and still covered by
-`npm run smoke-test` (32/32).
+The app now offers the full report-assembly path: edit narratives
+inline, reorder/include sections, optionally generate narratives via
+the M7 AI dispatcher, preview the rendered report in an iframe, and
+export to PDF via Electron's `printToPDF` into the workspace's
+`exports/` folder. Smoke test is 32/32.
 
 ## Immediate Priorities
 
-1. **Live-test the AI integration whenever ready.**
-   - Open the Atlanta workspace.
-   - Settings → AI Provider → paste an Anthropic API key, save.
-   - "Test connection" → expect success.
-   - Portfolio → click `✦ Generate` on the synthesis tier → expect
-     3–5 cards from the imported market data.
-   - Externally edit `narratives/market-overview.md` → refocus the app
-     → expect the external-changes banner with the diff preview.
-   - If clean, promote M7 to **Complete** in `docs/milestones.md` and
-     start M8.
+1. **Live-test M7 + M8 on Windows whenever ready.**
 
-2. **Begin Milestone 8 (Report Assembly and Export)** at any time —
-   the data and AI layers are stable and M8 can land in parallel with
-   M7's live verification.
-   - Report assembly panel (sidebar or drawer): list pinned modules
-     and narrative sections in order.
-   - Section ordering via drag-and-drop or move-up/move-down.
-   - Narrative editor: inline markdown for report sections (the AI
-     dispatcher already exposes `generateNarrative` for the
-     "Generate with AI" affordance).
-   - Exhibit embedding: charts, tables, maps as static images / HTML.
-   - Report preview, PDF export via Chromium print-to-PDF, output to
-     `<workspace>/exports/`.
+   M7 (AI Integration):
+   - Settings → AI Provider → paste an Anthropic API key, save.
+   - Test connection.
+   - Portfolio → `✦ Generate` on the synthesis tier → expect 3–5 cards.
+   - Externally edit `narratives/market-overview.md` → refocus app →
+     external-changes banner appears with diff preview.
+
+   M8 (Report Assembly):
+   - Reports → see the six default sections (market-overview through
+     leasing-activity).
+   - Edit a narrative inline; Save; reopen to confirm persistence.
+   - Reorder sections via ↑ / ↓; toggle Include; add a custom section.
+   - (M7 key configured) Click `✦ Generate with AI` to draft a section.
+   - Click `Preview` → assembled report renders in iframe.
+   - Click `Export PDF` → file lands in `<workspace>/exports/`; click
+     it in "Recent exports" to open in system viewer.
+
+   If both pass, promote M7 and M8 to **Complete** and start M9.
+
+2. **Begin Milestone 9 (Polish, Packaging, and Release Prep)** at any
+   time — M9 doesn't depend on M7/M8 verification.
+   - Windows installer polish (icon, metadata, start-menu entry).
+   - Auto-update mechanism (electron-updater).
+   - Error handling and crash reporting.
+   - Performance optimization for large workspaces.
+   - Keyboard shortcuts.
+   - Empty-state designs and loading skeletons.
+   - Accessibility pass (keyboard nav, screen reader labels, contrast).
+   - User-facing settings (default market, workspace location).
 
 ## Open Decisions Still to Resolve
 
@@ -49,27 +58,27 @@ a diff-preview banner. The data layer is unchanged and still covered by
 
 ## What Exists
 
-- Electron app shell: main / preload / renderer split.
-- Workspace lifecycle, multi-workspace persistence, restart-restore.
-- Per-workspace SQLite with migration runner.
-- CSV / JSON import, source file ingestion (sha256 dedup).
-- Data export to `data/*.json` matching `docs/ai-bridge-spec.md`.
-- WORKSPACE.md manifest with auto-generated "Current Data Summary".
-- Renderer: workspace context, sidebar routing (Portfolio / Data
-  Studio / Settings), Data Studio (5 sub-tabs + imports), Portfolio
-  with six analysis modules (key-metrics banner, AI synthesis cards,
-  Leaflet 2D market map, stacking plan, CBRE-style financial table,
-  ECharts dual-axis scenario panel), Settings page for AI provider.
-- AI integration:
-  - Anthropic adapter (`claude-opus-4-7` default, adaptive thinking,
-    `effort: medium`, prompt caching).
-  - Adapter interface for future OpenAI / others.
-  - API key encrypted via Electron `safeStorage`.
-  - Synthesis card generation via structured outputs (Zod schemas).
-  - Narrative generation API ready for M8.
-  - External AI bridge change detection on `narratives/` and
-    `notes/` with diff previews and acknowledge-all.
-- Pin-to-report wired to `report_pin` table for M8 assembly.
-- Sample fixtures + Atlanta submarket GeoJSON.
+- Electron app shell with restart-restored window state.
+- Multi-workspace lifecycle, slug-based folders under `~/.quarterline/`.
+- Per-workspace SQLite with migration runner. Tables: `workspace`,
+  `market_statistic`, `submarket_statistic`, `property`, `lease`,
+  `source_file`, `ai_synthesis_card`, `scenario`, `report_pin`,
+  `report_section`, `report_export`.
+- Data ingestion: CSV (market/submarket stats) + JSON (property+lease)
+  + source files (sha256 dedup); auto-export to `data/*.json` and
+  WORKSPACE.md "Current Data Summary" refresh after each import.
+- Renderer:
+  - **Portfolio**: KeyMetricsBanner + AI synthesis cards (manual /
+    AI-generated) + 2D Leaflet market map + stacking plan +
+    CBRE-style financial table + ECharts dual-axis scenarios.
+  - **Data Studio**: 5 sub-tabs with imports.
+  - **Reports**: section editor + AI-narrative generator + preview
+    iframe + PDF export to `<workspace>/exports/`.
+  - **Settings**: AI provider config (encrypted via safeStorage).
+- AI integration: Anthropic adapter (`claude-opus-4-7` default,
+  adaptive thinking, prompt caching, structured outputs). External AI
+  bridge change detection on `narratives/` and `notes/`.
+- Pin-to-report on Portfolio modules → `report_pin` table.
 - Automated smoke test: `npm run smoke-test` (32/32).
-- ESLint + Prettier, Windows packaging via electron-builder.
+- Sample fixtures + Atlanta submarket GeoJSON.
+- ESLint + Prettier; Windows packaging via electron-builder.

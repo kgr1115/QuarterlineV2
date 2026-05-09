@@ -1,5 +1,6 @@
-import { BrowserWindow, dialog, ipcMain } from 'electron'
+import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { readFileSync } from 'fs'
+import { join } from 'path'
 import { IpcChannels } from '../shared/ipc-channels'
 import type {
   AiConfigPublic,
@@ -10,8 +11,12 @@ import type {
   HeadlineMetrics,
   LeaseRow,
   MarketStatRow,
+  NarrativeGenerationResult,
   PropertyRow,
+  ReportExportResult,
+  ReportExportRow,
   ReportPin,
+  ReportSection,
   Scenario,
   ScenarioInput,
   SourceFileRow,
@@ -27,6 +32,7 @@ import {
   writeAiConfig
 } from './ai-config'
 import {
+  generateNarrativeForSection,
   generateSynthesisForWorkspace,
   testActiveProviderConnection
 } from './ai-dispatcher'
@@ -34,7 +40,17 @@ import {
   acknowledgeExternalChanges,
   scanExternalChanges
 } from './external-bridge'
-import { getWorkspaceDbPath } from './paths'
+import {
+  addCustomSection,
+  deleteSection,
+  listSections,
+  reorderSections,
+  setSectionIncluded,
+  updateSectionNarrative
+} from './report-assembly'
+import { exportReportPdf, listExports } from './report-export'
+import { renderReportHtml } from './report-render'
+import { getWorkspaceDbPath, getWorkspaceFolder } from './paths'
 import { readAppConfig, updateAppConfig } from './app-config'
 import {
   closeActiveWorkspace,
@@ -635,6 +651,197 @@ export function registerIpcHandlers(): void {
       createdAt: row.created_at
     }))
   })
+
+  ipcMain.handle(IpcChannels.REPORT_LIST_SECTIONS, (): ReportSection[] => {
+    const { db, workspace } = requireActive()
+    return listSections(db!, workspace!.id)
+  })
+
+  ipcMain.handle(
+    IpcChannels.REPORT_UPDATE_NARRATIVE,
+    (
+      _event,
+      payload: { sectionId: number; content: string }
+    ): ReportSection => {
+      const { db, workspace } = requireActive()
+      return updateSectionNarrative(
+        db!,
+        workspace!.id,
+        payload.sectionId,
+        payload.content
+      )
+    }
+  )
+
+  ipcMain.handle(
+    IpcChannels.REPORT_REORDER_SECTIONS,
+    (_event, orderedIds: number[]): ReportSection[] => {
+      const { db, workspace } = requireActive()
+      return reorderSections(db!, workspace!.id, orderedIds)
+    }
+  )
+
+  ipcMain.handle(
+    IpcChannels.REPORT_SET_SECTION_INCLUDED,
+    (
+      _event,
+      payload: { sectionId: number; included: boolean }
+    ): ReportSection[] => {
+      const { db, workspace } = requireActive()
+      return setSectionIncluded(
+        db!,
+        workspace!.id,
+        payload.sectionId,
+        payload.included
+      )
+    }
+  )
+
+  ipcMain.handle(
+    IpcChannels.REPORT_ADD_SECTION,
+    (_event, payload: { title: string }): ReportSection[] => {
+      const { db, workspace } = requireActive()
+      return addCustomSection(db!, workspace!.id, payload.title)
+    }
+  )
+
+  ipcMain.handle(
+    IpcChannels.REPORT_DELETE_SECTION,
+    (_event, sectionId: number): ReportSection[] => {
+      const { db, workspace } = requireActive()
+      return deleteSection(db!, workspace!.id, sectionId)
+    }
+  )
+
+  ipcMain.handle(IpcChannels.REPORT_RENDER_HTML, (): string => {
+    const { db, workspace } = requireActive()
+    const sections = listSections(db!, workspace!.id)
+    return renderReportHtml(db!, { workspace: workspace!, sections })
+  })
+
+  ipcMain.handle(
+    IpcChannels.REPORT_GENERATE_NARRATIVE,
+    async (
+      _event,
+      payload: { sectionId: number }
+    ): Promise<NarrativeGenerationResult> => {
+      try {
+        const { db, workspace } = requireActive()
+        const sections = listSections(db!, workspace!.id)
+        const section = sections.find((s) => s.id === payload.sectionId)
+        if (!section) {
+          return { ok: false, message: 'Section not found.' }
+        }
+        const marketStats = db!
+          .prepare(
+            `SELECT property_class, subclass, total_vacancy_pct,
+                    total_availability_pct, avg_direct_asking_rate_dollars_sf,
+                    current_quarter_net_absorption_sf, under_construction_sf
+               FROM market_statistic
+              WHERE quarter = ?`
+          )
+          .all(workspace!.currentQuarter) as Array<{
+          property_class: string
+          subclass: string | null
+          total_vacancy_pct: number | null
+          total_availability_pct: number | null
+          avg_direct_asking_rate_dollars_sf: number | null
+          current_quarter_net_absorption_sf: number | null
+          under_construction_sf: number | null
+        }>
+        const submarketStats = db!
+          .prepare(
+            `SELECT submarket, total_availability_pct,
+                    current_quarter_net_absorption_sf
+               FROM submarket_statistic
+              WHERE quarter = ?
+              ORDER BY net_rentable_area_msf DESC
+              LIMIT 8`
+          )
+          .all(workspace!.currentQuarter) as Array<{
+          submarket: string
+          total_availability_pct: number | null
+          current_quarter_net_absorption_sf: number | null
+        }>
+        const contextLines = [
+          'Market statistics by class:',
+          ...marketStats.map(
+            (r) =>
+              `- ${r.property_class}${r.subclass ? ` (${r.subclass})` : ''}: vacancy ${r.total_vacancy_pct ?? '—'}%, availability ${r.total_availability_pct ?? '—'}%, asking rate $${r.avg_direct_asking_rate_dollars_sf ?? '—'}/SF, qtr net abs ${r.current_quarter_net_absorption_sf ?? '—'} SF, under construction ${r.under_construction_sf ?? '—'} SF`
+          ),
+          '',
+          'Top submarkets:',
+          ...submarketStats.map(
+            (r) =>
+              `- ${r.submarket}: availability ${r.total_availability_pct ?? '—'}%, qtr net abs ${r.current_quarter_net_absorption_sf ?? '—'} SF`
+          )
+        ]
+        const result = await generateNarrativeForSection(
+          workspace!,
+          section.title,
+          contextLines.join('\n')
+        )
+        updateSectionNarrative(
+          db!,
+          workspace!.id,
+          section.id,
+          result.markdown
+        )
+        return {
+          ok: true,
+          markdown: result.markdown,
+          usage: result.usage
+        }
+      } catch (err) {
+        return {
+          ok: false,
+          message: err instanceof Error ? err.message : 'Unknown error.'
+        }
+      }
+    }
+  )
+
+  ipcMain.handle(
+    IpcChannels.REPORT_EXPORT_PDF,
+    async (): Promise<ReportExportResult> => {
+      try {
+        const { db, workspace } = requireActive()
+        const sections = listSections(db!, workspace!.id)
+        const html = renderReportHtml(db!, {
+          workspace: workspace!,
+          sections
+        })
+        const result = await exportReportPdf(db!, workspace!, html)
+        return {
+          ok: true,
+          relativePath: result.relativePath,
+          absolutePath: result.absolutePath,
+          sizeBytes: result.sizeBytes,
+          generatedAt: result.generatedAt
+        }
+      } catch (err) {
+        return {
+          ok: false,
+          message: err instanceof Error ? err.message : 'Unknown error.'
+        }
+      }
+    }
+  )
+
+  ipcMain.handle(IpcChannels.REPORT_LIST_EXPORTS, (): ReportExportRow[] => {
+    const { db } = requireActive()
+    return listExports(db!)
+  })
+
+  ipcMain.handle(
+    IpcChannels.REPORT_OPEN_EXPORT,
+    async (_event, relativePath: string): Promise<null> => {
+      const { workspace } = requireActive()
+      const abs = join(getWorkspaceFolder(workspace!.id), relativePath)
+      await shell.openPath(abs)
+      return null
+    }
+  )
 
   ipcMain.handle(IpcChannels.AI_GET_CONFIG, (): AiConfigPublic => readAiConfig())
 

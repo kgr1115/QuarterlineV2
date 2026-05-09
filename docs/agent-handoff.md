@@ -6,8 +6,9 @@ Date: 2026-05-09
 
 QuarterlineV2 is a downloadable desktop app for institutional CRE research
 and reporting. Implementation is underway. Milestones 0-6 are complete.
-M7 (AI Integration) has its implementation landed and is awaiting a live
-API call by the user before it can be marked complete.
+M7 (AI Integration) and M8 (Report Assembly and Export) both have their
+implementations landed and are awaiting user verification on Windows
+(M7 needs a live Anthropic key; M8 needs a GUI walkthrough).
 
 ## Resolved Decisions (see `docs/decision-log.md`)
 
@@ -124,27 +125,36 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
 13. `docs/mvp-scope.md`
 14. `docs/publication-output-spec.md`
 
-## Active Milestone
+## Active Milestones
 
-**Milestone 7 (AI Integration)** is in progress. Implementation landed
-2026-05-09:
+**Milestones 7 and 8** are both in progress. Implementations landed
+2026-05-09.
 
+**M7 (AI Integration):**
 - Anthropic adapter (`claude-opus-4-7` default, adaptive thinking,
   `effort: medium`, prompt caching, structured outputs via Zod) behind
-  an internal `AiProviderAdapter` interface so OpenAI can drop in later.
-- API key encrypted via Electron `safeStorage` and stored as a base64
-  ciphertext in `~/.quarterline/config.json`. Settings UI surfaces
-  encryption availability rather than silently falling back to plaintext.
-- Synthesis card generation reachable from the Portfolio synthesis tier
-  (`✦ Generate` button when a key is configured); cards land in
-  `ai_synthesis_card` with `source = 'built-in-ai'`.
-- Narrative generation API ready (no UI yet — M8's report assembly will
-  surface it).
-- External AI bridge: scans `narratives/` and `notes/` for markdown
-  changes on workspace open and on window focus; renders a diff-preview
-  banner above the workspace area; "Acknowledge all" snapshots state
-  to `<workspace>/.quarterline/last-scan.json`.
+  an internal `AiProviderAdapter` interface.
+- API key encrypted via Electron `safeStorage`.
+- Synthesis-card generation from Portfolio (`✦ Generate`); narrative
+  generation surfaced in M8's editor.
+- External-AI bridge change detection on `narratives/` and `notes/`.
+- Pending: live API call by the user.
 
-Pending: a live API call by the user (paste key, test connection,
-generate cards). Once that succeeds, promote to **Complete** and start
-M8 (Report Assembly and Export).
+**M8 (Report Assembly and Export):**
+- New `report_section` and `report_export` tables.
+- `report-assembly.ts` seeds six default CBRE-style sections on first
+  open and manages the section list. Narratives live as files under
+  `<workspace>/narratives/` so the AI bridge can co-edit them.
+- `report-render.ts` produces the report HTML (cover page with key
+  metrics + pinned synthesis cards, section narratives via `marked`,
+  market and submarket statistics tables, generated-date footer).
+- `report-export.ts` renders to PDF via Electron's
+  `webContents.printToPDF()` on a hidden `BrowserWindow` and writes
+  to `<workspace>/exports/`.
+- `ReportsView.tsx`: three-pane (sections sidebar / editor / preview
+  iframe) with reorder, include toggle, custom-section add, AI
+  narrative generation, preview, and PDF export.
+- Pending: user GUI walkthrough on Windows.
+
+Once M7 and M8 are both verified, promote them to **Complete** and
+start M9 (Polish, Packaging, and Release Prep).

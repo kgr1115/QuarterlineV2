@@ -3,6 +3,7 @@ import { Sidebar, type RouteId } from './components/Sidebar'
 import { FilterBar } from './components/FilterBar'
 import { WorkspaceArea } from './components/WorkspaceArea'
 import { DataStudio } from './components/DataStudio'
+import { ReportsView } from './components/ReportsView'
 import { SettingsView } from './components/SettingsView'
 import { StatusBar } from './components/StatusBar'
 import { CreateWorkspaceDialog } from './components/CreateWorkspaceDialog'
@@ -18,6 +19,8 @@ export function App() {
     mainView = <DataStudio />
   } else if (route === 'settings') {
     mainView = <SettingsView />
+  } else if (route === 'reports') {
+    mainView = <ReportsView />
   } else {
     mainView = <WorkspaceArea onCreateWorkspace={() => setCreateOpen(true)} />
   }

@@ -169,6 +169,31 @@ const MIGRATIONS: Migration[] = [
         );
       `)
     }
+  },
+  {
+    id: '0006-report-sections',
+    up: (db) => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS report_section (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          section_key TEXT NOT NULL UNIQUE,
+          title TEXT NOT NULL,
+          narrative_path TEXT NOT NULL,
+          position INTEGER NOT NULL,
+          include_in_report INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS report_export (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          format TEXT NOT NULL,
+          relative_path TEXT NOT NULL,
+          generated_at TEXT NOT NULL,
+          size_bytes INTEGER NOT NULL
+        );
+      `)
+    }
   }
 ]
 

@@ -10,9 +10,13 @@ import type {
   JsonImportSummary,
   LeaseRow,
   MarketStatRow,
+  NarrativeGenerationResult,
   PingResult,
   PropertyRow,
+  ReportExportResult,
+  ReportExportRow,
   ReportPin,
+  ReportSection,
   Scenario,
   ScenarioInput,
   SourceFileRow,
@@ -83,6 +87,27 @@ declare global {
       bridge: {
         scanChanges: () => Promise<ExternalChangeScanResult>
         ackChanges: () => Promise<null>
+      }
+      reportSections: {
+        list: () => Promise<ReportSection[]>
+        updateNarrative: (
+          sectionId: number,
+          content: string
+        ) => Promise<ReportSection>
+        reorder: (orderedIds: number[]) => Promise<ReportSection[]>
+        setIncluded: (
+          sectionId: number,
+          included: boolean
+        ) => Promise<ReportSection[]>
+        addCustom: (title: string) => Promise<ReportSection[]>
+        delete: (sectionId: number) => Promise<ReportSection[]>
+        renderHtml: () => Promise<string>
+        generateNarrative: (
+          sectionId: number
+        ) => Promise<NarrativeGenerationResult>
+        exportPdf: () => Promise<ReportExportResult>
+        listExports: () => Promise<ReportExportRow[]>
+        openExport: (relativePath: string) => Promise<null>
       }
     }
   }

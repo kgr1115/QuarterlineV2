@@ -41,7 +41,19 @@ export const IpcChannels = {
   AI_GENERATE_SYNTHESIS: 'ai:generate-synthesis',
 
   BRIDGE_SCAN_CHANGES: 'bridge:scan-changes',
-  BRIDGE_ACK_CHANGES: 'bridge:ack-changes'
+  BRIDGE_ACK_CHANGES: 'bridge:ack-changes',
+
+  REPORT_LIST_SECTIONS: 'report:list-sections',
+  REPORT_UPDATE_NARRATIVE: 'report:update-narrative',
+  REPORT_REORDER_SECTIONS: 'report:reorder-sections',
+  REPORT_SET_SECTION_INCLUDED: 'report:set-section-included',
+  REPORT_ADD_SECTION: 'report:add-section',
+  REPORT_DELETE_SECTION: 'report:delete-section',
+  REPORT_RENDER_HTML: 'report:render-html',
+  REPORT_GENERATE_NARRATIVE: 'report:generate-narrative',
+  REPORT_EXPORT_PDF: 'report:export-pdf',
+  REPORT_LIST_EXPORTS: 'report:list-exports',
+  REPORT_OPEN_EXPORT: 'report:open-export'
 } as const
 
 export type DbStatusResult = {
@@ -269,4 +281,45 @@ export type ExternalChange = {
 export type ExternalChangeScanResult = {
   scannedAt: string
   changes: ExternalChange[]
+}
+
+export type ReportSection = {
+  id: number
+  sectionKey: string
+  title: string
+  narrativePath: string
+  position: number
+  includeInReport: boolean
+  createdAt: string
+  updatedAt: string
+  narrativeContent: string
+}
+
+export type ReportExportRow = {
+  id: number
+  format: string
+  relativePath: string
+  generatedAt: string
+  sizeBytes: number
+}
+
+export type ReportExportResult = {
+  ok: boolean
+  message?: string
+  relativePath?: string
+  absolutePath?: string
+  sizeBytes?: number
+  generatedAt?: string
+}
+
+export type NarrativeGenerationResult = {
+  ok: boolean
+  markdown?: string
+  message?: string
+  usage?: {
+    inputTokens: number
+    outputTokens: number
+    cacheReadTokens: number
+    cacheCreationTokens: number
+  }
 }

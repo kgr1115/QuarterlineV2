@@ -12,9 +12,13 @@ import type {
   JsonImportSummary,
   LeaseRow,
   MarketStatRow,
+  NarrativeGenerationResult,
   PingResult,
   PropertyRow,
+  ReportExportResult,
+  ReportExportRow,
   ReportPin,
+  ReportSection,
   Scenario,
   ScenarioInput,
   SourceFileRow,
@@ -127,6 +131,37 @@ const api = {
       ipcRenderer.invoke(IpcChannels.BRIDGE_SCAN_CHANGES),
     ackChanges: (): Promise<null> =>
       ipcRenderer.invoke(IpcChannels.BRIDGE_ACK_CHANGES)
+  },
+
+  reportSections: {
+    list: (): Promise<ReportSection[]> =>
+      ipcRenderer.invoke(IpcChannels.REPORT_LIST_SECTIONS),
+    updateNarrative: (sectionId: number, content: string): Promise<ReportSection> =>
+      ipcRenderer.invoke(IpcChannels.REPORT_UPDATE_NARRATIVE, {
+        sectionId,
+        content
+      }),
+    reorder: (orderedIds: number[]): Promise<ReportSection[]> =>
+      ipcRenderer.invoke(IpcChannels.REPORT_REORDER_SECTIONS, orderedIds),
+    setIncluded: (sectionId: number, included: boolean): Promise<ReportSection[]> =>
+      ipcRenderer.invoke(IpcChannels.REPORT_SET_SECTION_INCLUDED, {
+        sectionId,
+        included
+      }),
+    addCustom: (title: string): Promise<ReportSection[]> =>
+      ipcRenderer.invoke(IpcChannels.REPORT_ADD_SECTION, { title }),
+    delete: (sectionId: number): Promise<ReportSection[]> =>
+      ipcRenderer.invoke(IpcChannels.REPORT_DELETE_SECTION, sectionId),
+    renderHtml: (): Promise<string> =>
+      ipcRenderer.invoke(IpcChannels.REPORT_RENDER_HTML),
+    generateNarrative: (sectionId: number): Promise<NarrativeGenerationResult> =>
+      ipcRenderer.invoke(IpcChannels.REPORT_GENERATE_NARRATIVE, { sectionId }),
+    exportPdf: (): Promise<ReportExportResult> =>
+      ipcRenderer.invoke(IpcChannels.REPORT_EXPORT_PDF),
+    listExports: (): Promise<ReportExportRow[]> =>
+      ipcRenderer.invoke(IpcChannels.REPORT_LIST_EXPORTS),
+    openExport: (relativePath: string): Promise<null> =>
+      ipcRenderer.invoke(IpcChannels.REPORT_OPEN_EXPORT, relativePath)
   }
 }
 

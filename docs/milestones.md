@@ -9,8 +9,9 @@ so each builds on the last. No V1 milestone history applies.
 
 ## Current Phase
 
-Status: Implementation. Milestones 0-6 complete. Milestone 7 (AI
-Integration) is **in progress**.
+Status: Implementation. Milestones 0-6 complete. M7 (AI Integration)
+is in progress (awaiting live API call). M8 (Report Assembly and
+Export) is **in progress** in parallel.
 
 ## Milestone Authoring Rules
 
@@ -546,6 +547,76 @@ Owner: Chief Reporting Agent + Chief Product and Frontend Agent.
 Goal: Assemble pinned modules and narratives into an exportable report.
 
 Dependencies: Milestones 6 and 7.
+
+Status: **In progress.** Started 2026-05-09. Implementation landed the
+same day; awaiting user GUI walkthrough on Windows to promote to
+**Complete**.
+
+Tech choices (see `docs/decision-log.md`):
+
+- Markdown rendering: `marked` (small, sync API).
+- PDF generation: Electron `BrowserWindow` headlessly + `webContents.printToPDF()`
+  with `printBackground: true` and `preferCSSPageSize: true`. No
+  external rendering dep.
+- Report HTML uses `@page` CSS to control print margins and page size
+  (US Letter, 0.6in / 0.5in margins).
+
+Work to date:
+
+- Schema migration `0006-report-sections` adds `report_section`
+  (id, section_key, title, narrative_path, position,
+  include_in_report, timestamps) and `report_export` (pdf log:
+  format, relative_path, generated_at, size_bytes).
+- New main-process modules:
+  - `report-assembly.ts` — manages sections. Seeds the six default
+    CBRE-style sections (market-overview / availability / asking-rent /
+    net-absorption / construction-activity / leasing-activity) on first
+    open; provides list / update-narrative / reorder / set-included /
+    add-custom / delete. Narratives read/write to the workspace's
+    `narratives/` folder so the AI bridge can co-edit them.
+  - `report-render.ts` — assembles the full report HTML: cover page
+    (workspace + key metrics + pinned synthesis cards), each included
+    section in order with its narrative rendered through `marked`,
+    statistical tables (by class + by submarket), generated-date
+    footer. Inter / JetBrains Mono fonts loaded via Google Fonts.
+  - `report-export.ts` — opens a hidden `BrowserWindow`, loads the
+    HTML as a data URL, calls `webContents.printToPDF()`, writes the
+    file to `<workspace>/exports/<slug>_<timestamp>.pdf`, and records
+    the export in `report_export`.
+- New IPC channels: `report:list-sections`, `report:update-narrative`,
+  `report:reorder-sections`, `report:set-section-included`,
+  `report:add-section`, `report:delete-section`, `report:render-html`,
+  `report:generate-narrative` (calls the M7 AI dispatcher's
+  narrative path with workspace data context, writes the result to
+  the section's narrative file), `report:export-pdf`,
+  `report:list-exports`, `report:open-export` (shell.openPath).
+- Renderer:
+  - `ReportsView.tsx` — three-pane: sidebar (sections list with
+    move-up/down and include toggle and "+ Add custom"), editor
+    (textarea + per-section AI-generate button), preview (iframe
+    using the rendered HTML). "Export PDF" button renders the HTML
+    and writes the PDF; recent exports list opens with the system
+    default viewer on click.
+  - Routed via the existing `Reports` sidebar nav item.
+- Verified: `npm run build` clean, `npx tsc --noEmit` clean for both
+  tsconfigs, `npm run smoke-test` 32/32 (migration 0006 applies cleanly
+  on existing workspaces).
+
+Pending verification (manual GUI walkthrough on Windows):
+
+- Click `Reports` in the sidebar → see the six default sections with
+  paths under `narratives/`.
+- Edit a narrative inline; click Save; reopen the section to confirm
+  it persisted.
+- Reorder sections with the ↑ / ↓ buttons; toggle "include"; add a
+  custom section; delete it.
+- (Optional, requires M7 key configured) Click `✦ Generate with AI`
+  to draft the section narrative.
+- Click `Preview` → see the assembled report rendered in an iframe
+  with the cover, sections, and statistics tables.
+- Click `Export PDF` → file appears under `<workspace>/exports/` and
+  in the "Recent exports" list. Click it to open in the system PDF
+  viewer.
 
 Scope:
 
