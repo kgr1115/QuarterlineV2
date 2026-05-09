@@ -16,31 +16,47 @@ export type AiStoredConfig = {
   model: string
 }
 
+export type Preferences = {
+  defaultMarket: string | null
+  defaultPropertyType: string | null
+}
+
 export type AppConfig = {
   lastWorkspaceId: string | null
   windowState: WindowState | null
   ai: AiStoredConfig | null
+  preferences: Preferences
+}
+
+const DEFAULT_PREFERENCES: Preferences = {
+  defaultMarket: null,
+  defaultPropertyType: null
 }
 
 const DEFAULT_CONFIG: AppConfig = {
   lastWorkspaceId: null,
   windowState: null,
-  ai: null
+  ai: null,
+  preferences: { ...DEFAULT_PREFERENCES }
 }
 
 export function readAppConfig(): AppConfig {
   const path = getAppConfigPath()
-  if (!existsSync(path)) return { ...DEFAULT_CONFIG }
+  if (!existsSync(path)) return { ...DEFAULT_CONFIG, preferences: { ...DEFAULT_PREFERENCES } }
   try {
     const raw = readFileSync(path, 'utf8')
     const parsed = JSON.parse(raw) as Partial<AppConfig>
     return {
       lastWorkspaceId: parsed.lastWorkspaceId ?? null,
       windowState: parsed.windowState ?? null,
-      ai: parsed.ai ?? null
+      ai: parsed.ai ?? null,
+      preferences: {
+        defaultMarket: parsed.preferences?.defaultMarket ?? null,
+        defaultPropertyType: parsed.preferences?.defaultPropertyType ?? null
+      }
     }
   } catch {
-    return { ...DEFAULT_CONFIG }
+    return { ...DEFAULT_CONFIG, preferences: { ...DEFAULT_PREFERENCES } }
   }
 }
 

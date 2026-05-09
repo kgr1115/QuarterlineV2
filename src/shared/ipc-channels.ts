@@ -59,7 +59,9 @@ export const IpcChannels = {
   APP_OPEN_QUARTERLINE_FOLDER: 'app:open-quarterline-folder',
   APP_OPEN_LOG_FOLDER: 'app:open-log-folder',
   APP_REPORT_RENDERER_ERROR: 'app:report-renderer-error',
-  APP_MENU_ACTION: 'app:menu-action'
+  APP_MENU_ACTION: 'app:menu-action',
+  APP_GET_PREFERENCES: 'app:get-preferences',
+  APP_SAVE_PREFERENCES: 'app:save-preferences'
 } as const
 
 export type MenuAction =
@@ -78,6 +80,22 @@ export type AppInfo = {
   quarterlineRoot: string
   workspacesRoot: string
   logsPath: string
+  isPackaged: boolean
+  updateState: UpdateState
+}
+
+export type UpdateState =
+  | { kind: 'idle' }
+  | { kind: 'checking' }
+  | { kind: 'available'; version: string }
+  | { kind: 'not-available' }
+  | { kind: 'downloaded'; version: string }
+  | { kind: 'error'; message: string }
+  | { kind: 'disabled'; reason: string }
+
+export type Preferences = {
+  defaultMarket: string | null
+  defaultPropertyType: string | null
 }
 
 export type DbStatusResult = {

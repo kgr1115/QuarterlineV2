@@ -667,11 +667,19 @@ Goal: Production-ready Windows release.
 Dependencies: Milestone 8 (implementation; verification can run in
 parallel).
 
-Status: **In progress.** Started 2026-05-09. Phase 1 lands the
-foundational polish that pays compounding returns: main-process
-crash logging, renderer error boundary, native menu with keyboard
-shortcuts, installer metadata polish, and Settings app-info panel.
-Auto-update wiring and accessibility audit follow in later phases.
+Status: **In progress.** Started 2026-05-09. Phases 1 and 2 landed
+2026-05-09. Phase 3 (performance audit, release pipeline, icon
+assets) is queued.
+
+- Phase 1: main-process crash logging, renderer error boundary,
+  native menu with keyboard shortcuts, installer metadata polish,
+  Settings app-info panel, loading skeletons.
+- Phase 2: accessibility pass on sidebar / filter bar / icon
+  buttons, user preferences (default market + property type) with
+  Settings UI and New Workspace dialog pre-fill, auto-update
+  wiring via `electron-updater` (guarded for dev / disabled state,
+  publish stanza commented out in `electron-builder.yml` until a
+  release pipeline is live).
 
 Scope:
 

@@ -25,6 +25,7 @@
     "csv-parse": "^6.2.1",
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.6",
+    "electron-updater": "^6.8.3",
     "leaflet": "^1.9.4",
     "marked": "^18.0.3",
     "react": "^19.1.0",

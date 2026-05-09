@@ -110,6 +110,8 @@ function CardItem({
           className={`synthesis-pin ${card.pinned ? 'on' : ''}`}
           onClick={onTogglePin}
           title={card.pinned ? 'Unpin from report' : 'Pin to report'}
+          aria-label={card.pinned ? 'Unpin from report' : 'Pin to report'}
+          aria-pressed={card.pinned}
         >
           {card.pinned ? '◉' : '○'}
         </button>

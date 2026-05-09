@@ -230,6 +230,7 @@ export function ReportsView() {
             className="reports-icon-btn"
             onClick={onAddSection}
             title="Add custom section"
+            aria-label="Add custom section"
           >
             +
           </button>
@@ -254,12 +255,27 @@ export function ReportsView() {
                 </span>
               </span>
               <span
+                role="button"
+                tabIndex={0}
                 className={`reports-section-flag ${section.includeInReport ? 'on' : ''}`}
                 onClick={(e) => {
                   e.stopPropagation()
                   void onToggleInclude(section)
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    void onToggleInclude(section)
+                  }
+                }}
                 title={section.includeInReport ? 'Included' : 'Excluded'}
+                aria-label={
+                  section.includeInReport
+                    ? `Exclude "${section.title}" from report`
+                    : `Include "${section.title}" in report`
+                }
+                aria-pressed={section.includeInReport}
               >
                 {section.includeInReport ? '◉' : '○'}
               </span>
@@ -330,6 +346,7 @@ export function ReportsView() {
                 className="dialog-btn dialog-btn-secondary"
                 onClick={() => onMove(-1)}
                 disabled={sections[0]?.id === active.id}
+                aria-label="Move section up"
               >
                 ↑
               </button>
@@ -338,6 +355,7 @@ export function ReportsView() {
                 className="dialog-btn dialog-btn-secondary"
                 onClick={() => onMove(1)}
                 disabled={sections[sections.length - 1]?.id === active.id}
+                aria-label="Move section down"
               >
                 ↓
               </button>

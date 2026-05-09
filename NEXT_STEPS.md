@@ -44,22 +44,37 @@ export to PDF via Electron's `printToPDF` into the workspace's
    If both pass, promote M7 and M8 to **Complete** and start M9.
 
 2. **Continue Milestone 9 (Polish, Packaging, and Release Prep).**
-   Phase 1 is in progress; later phases below.
-   - Phase 1 (in progress 2026-05-09):
+   Phases 1 and 2 landed 2026-05-09.
+   - Phase 1 (landed 2026-05-09):
      - Main-process crash logging to `~/.quarterline/logs/`.
      - Renderer error boundary (no white-screen-of-death).
      - Native application menu with keyboard shortcuts
-       (Ctrl+N, Ctrl+,, Ctrl+1-6, Cut/Copy/Paste, DevTools).
+       (Ctrl+N, Ctrl+,, Ctrl+1-3, Cut/Copy/Paste, DevTools).
      - Installer metadata polish (author, copyright, NSIS naming).
      - Settings app-info panel (version, workspace folder root,
        open-folder button).
      - Empty/loading state pass.
-   - Phase 2 (queued):
-     - Auto-update mechanism (electron-updater + GitHub releases).
-     - Performance optimization for large workspaces.
-     - Accessibility pass (keyboard nav, screen reader labels,
-       contrast).
-     - User-facing settings (default market, workspace location).
+   - Phase 2 (landed 2026-05-09):
+     - Accessibility pass — sidebar nav as real buttons with
+       `aria-current`, focus-visible outlines, FilterBar toolbar
+       semantics, icon-button `aria-label`s, pin/include
+       `aria-pressed`.
+     - User preferences — `preferences.defaultMarket` and
+       `defaultPropertyType` in app config; Settings →
+       Preferences pane; New Workspace dialog pre-fills.
+     - Auto-update wiring — `electron-updater` integrated with
+       `app.isPackaged` and `QUARTERLINE_DISABLE_AUTO_UPDATE`
+       guards; state surfaced in Settings → About;
+       `electron-builder.yml` carries a commented GitHub publish
+       stanza ready to enable.
+   - Phase 3 (queued):
+     - Performance — SQLite index audit + bundle code-splitting
+       for echarts/leaflet (only after measurement on a large
+       workspace).
+     - Release pipeline — fill in `publish:` provider, configure
+       GitHub releases, code-signing, first packaged release.
+     - Icon and installer artwork — drop `icon.ico` plus optional
+       NSIS header/sidebar artwork into `build/`.
 
 ## Open Decisions Still to Resolve
 

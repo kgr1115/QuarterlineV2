@@ -35,9 +35,11 @@ export function Sidebar({ activeRoute, onRouteChange, onCreateWorkspace }: Props
   }))
 
   return (
-    <nav className="sidebar">
+    <nav className="sidebar" aria-label="Primary navigation">
       <div className="sidebar-header">
-        <div className="sidebar-logo">Q</div>
+        <div className="sidebar-logo" aria-hidden="true">
+          Q
+        </div>
         <span className="sidebar-title">QuarterlineV2</span>
       </div>
 
@@ -47,17 +49,24 @@ export function Sidebar({ activeRoute, onRouteChange, onCreateWorkspace }: Props
 
       <div className="sidebar-nav">
         {grouped.map((group) => (
-          <div key={group.label}>
-            <div className="nav-section-label">{group.label}</div>
-            {group.items.map((item) => (
-              <div
-                key={item.id}
-                className={`nav-item ${activeRoute === item.id ? 'active' : ''}`}
-                onClick={() => onRouteChange(item.id)}
-              >
-                <span>{item.label}</span>
-              </div>
-            ))}
+          <div key={group.label} role="group" aria-label={group.label}>
+            <div className="nav-section-label" aria-hidden="true">
+              {group.label}
+            </div>
+            {group.items.map((item) => {
+              const isActive = activeRoute === item.id
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`nav-item ${isActive ? 'active' : ''}`}
+                  onClick={() => onRouteChange(item.id)}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <span>{item.label}</span>
+                </button>
+              )
+            })}
           </div>
         ))}
       </div>

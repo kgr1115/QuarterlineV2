@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import type {
   AiConfigPublic,
   AiConnectionResult,
-  AppInfo
+  AppInfo,
+  Preferences
 } from '../../../shared/ipc-channels'
 
 const MODELS = [
@@ -12,9 +13,35 @@ const MODELS = [
   { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5 (fastest)' }
 ]
 
+const PROPERTY_TYPES = ['Office', 'Industrial', 'Retail', 'Multifamily', 'Mixed-Use']
+
+function describeUpdateState(info: AppInfo): string {
+  if (!info.isPackaged) return 'Disabled (development build)'
+  switch (info.updateState.kind) {
+    case 'idle':
+      return 'Idle'
+    case 'checking':
+      return 'Checking for updates…'
+    case 'available':
+      return `Update available — v${info.updateState.version} (downloading)`
+    case 'not-available':
+      return 'Up to date'
+    case 'downloaded':
+      return `Update downloaded — v${info.updateState.version} (installs on next quit)`
+    case 'error':
+      return `Error: ${info.updateState.message}`
+    case 'disabled':
+      return `Disabled: ${info.updateState.reason}`
+  }
+}
+
 export function SettingsView() {
   const [config, setConfig] = useState<AiConfigPublic | null>(null)
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null)
+  const [prefs, setPrefs] = useState<Preferences | null>(null)
+  const [defaultMarket, setDefaultMarket] = useState('')
+  const [defaultPropertyType, setDefaultPropertyType] = useState('')
+  const [prefsSaved, setPrefsSaved] = useState(false)
   const [apiKey, setApiKey] = useState('')
   const [model, setModel] = useState(MODELS[0].id)
   const [busy, setBusy] = useState(false)
@@ -42,10 +69,29 @@ export function SettingsView() {
         setAppInfo(info)
       })
       .catch(() => {})
+    window.quarterline.app
+      .getPreferences()
+      .then((p) => {
+        if (cancelled) return
+        setPrefs(p)
+        setDefaultMarket(p.defaultMarket ?? '')
+        setDefaultPropertyType(p.defaultPropertyType ?? '')
+      })
+      .catch(() => {})
     return () => {
       cancelled = true
     }
   }, [])
+
+  const onSavePrefs = async () => {
+    const next = await window.quarterline.app.savePreferences({
+      defaultMarket: defaultMarket.trim() || null,
+      defaultPropertyType: defaultPropertyType || null
+    })
+    setPrefs(next)
+    setPrefsSaved(true)
+    setTimeout(() => setPrefsSaved(false), 1800)
+  }
 
   const onSave = async () => {
     if (busy) return
@@ -215,6 +261,56 @@ export function SettingsView() {
       </div>
 
       <div className="settings-section">
+        <h2 className="settings-title">Preferences</h2>
+        <p className="settings-help">
+          Defaults applied to the New Workspace dialog. Leave blank to skip
+          a default.
+        </p>
+        <div className="settings-form">
+          <label className="dialog-field">
+            <span className="dialog-label">Default market</span>
+            <input
+              type="text"
+              className="dialog-input"
+              placeholder="e.g., Atlanta"
+              value={defaultMarket}
+              onChange={(e) => setDefaultMarket(e.target.value)}
+            />
+          </label>
+          <label className="dialog-field">
+            <span className="dialog-label">Default property type</span>
+            <select
+              className="dialog-input"
+              value={defaultPropertyType}
+              onChange={(e) => setDefaultPropertyType(e.target.value)}
+            >
+              <option value="">— No default —</option>
+              {PROPERTY_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="settings-actions">
+            <button
+              type="button"
+              className="dialog-btn dialog-btn-primary"
+              onClick={onSavePrefs}
+              disabled={!prefs}
+            >
+              Save preferences
+            </button>
+          </div>
+          {prefsSaved && (
+            <div className="settings-banner settings-banner-success">
+              Preferences saved.
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="settings-section">
         <h2 className="settings-title">External AI Bridge</h2>
         <p className="settings-help">
           The workspace folder is structured so external AI tools (Claude
@@ -246,6 +342,10 @@ export function SettingsView() {
             <div className="settings-grid-value">{appInfo.workspacesRoot}</div>
             <div className="settings-grid-key">Crash log</div>
             <div className="settings-grid-value">{appInfo.logsPath}</div>
+            <div className="settings-grid-key">Auto-update</div>
+            <div className="settings-grid-value">
+              {describeUpdateState(appInfo)}
+            </div>
           </div>
         ) : (
           <div className="settings-help">Loading…</div>

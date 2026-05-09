@@ -4,6 +4,7 @@ import type {
   AiConnectionResult,
   AiSynthesisGenerationResult,
   AppInfo,
+  Preferences,
   CsvImportSummary,
   DbStatusResult,
   ExternalChangeScanResult,
@@ -100,6 +101,8 @@ declare global {
           componentStack?: string
         }) => Promise<null>
         onMenuAction: (handler: (action: MenuAction) => void) => () => void
+        getPreferences: () => Promise<Preferences>
+        savePreferences: (patch: Partial<Preferences>) => Promise<Preferences>
       }
       reportSections: {
         list: () => Promise<ReportSection[]>

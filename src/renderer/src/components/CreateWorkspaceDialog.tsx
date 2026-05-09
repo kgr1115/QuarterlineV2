@@ -27,12 +27,31 @@ export function CreateWorkspaceDialog({ open, onClose }: Props) {
   useEffect(() => {
     if (!open) return
     setName('')
-    setMarket('')
-    setPropertyType(PROPERTY_TYPES[0])
-    setQuarter(defaultQuarter())
     setError(null)
     setSubmitting(false)
+    setQuarter(defaultQuarter())
+
+    let cancelled = false
+    window.quarterline.app
+      .getPreferences()
+      .then((p) => {
+        if (cancelled) return
+        setMarket(p.defaultMarket ?? '')
+        setPropertyType(
+          p.defaultPropertyType && PROPERTY_TYPES.includes(p.defaultPropertyType)
+            ? p.defaultPropertyType
+            : PROPERTY_TYPES[0]
+        )
+      })
+      .catch(() => {
+        setMarket('')
+        setPropertyType(PROPERTY_TYPES[0])
+      })
+
     requestAnimationFrame(() => nameRef.current?.focus())
+    return () => {
+      cancelled = true
+    }
   }, [open])
 
   useEffect(() => {

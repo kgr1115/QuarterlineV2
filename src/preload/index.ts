@@ -6,6 +6,7 @@ import type {
   AiConnectionResult,
   AiSynthesisGenerationResult,
   AppInfo,
+  Preferences,
   CsvImportSummary,
   DbStatusResult,
   ExternalChangeScanResult,
@@ -152,7 +153,11 @@ const api = {
         handler(action)
       ipcRenderer.on(IpcChannels.APP_MENU_ACTION, listener)
       return () => ipcRenderer.removeListener(IpcChannels.APP_MENU_ACTION, listener)
-    }
+    },
+    getPreferences: (): Promise<Preferences> =>
+      ipcRenderer.invoke(IpcChannels.APP_GET_PREFERENCES),
+    savePreferences: (patch: Partial<Preferences>): Promise<Preferences> =>
+      ipcRenderer.invoke(IpcChannels.APP_SAVE_PREFERENCES, patch)
   },
 
   reportSections: {

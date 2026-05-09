@@ -9,6 +9,7 @@ import type {
   AiSynthesisGenerationResult,
   AppInfo,
   ExternalChangeScanResult,
+  Preferences,
   HeadlineMetrics,
   LeaseRow,
   MarketStatRow,
@@ -28,6 +29,7 @@ import type {
   WorkspaceCreateInput
 } from '../shared/ipc-channels'
 import { getCrashLogPathForDisplay, logCrash } from './crash-log'
+import { getUpdateState } from './auto-updater'
 import {
   clearAiConfig,
   readAiConfig,
@@ -953,7 +955,9 @@ export function registerIpcHandlers(): void {
     chromeVersion: process.versions.chrome,
     quarterlineRoot: getQuarterlineRoot(),
     workspacesRoot: getWorkspacesRoot(),
-    logsPath: getCrashLogPathForDisplay()
+    logsPath: getCrashLogPathForDisplay(),
+    isPackaged: app.isPackaged,
+    updateState: getUpdateState()
   }))
 
   ipcMain.handle(IpcChannels.APP_OPEN_QUARTERLINE_FOLDER, async (): Promise<null> => {
@@ -972,6 +976,23 @@ export function registerIpcHandlers(): void {
       const composed = `${payload.message}\n${payload.stack ?? ''}\n${payload.componentStack ?? ''}`
       logCrash('renderer', new Error(composed))
       return null
+    }
+  )
+
+  ipcMain.handle(IpcChannels.APP_GET_PREFERENCES, (): Preferences => {
+    return readAppConfig().preferences
+  })
+
+  ipcMain.handle(
+    IpcChannels.APP_SAVE_PREFERENCES,
+    (_event, patch: Partial<Preferences>): Preferences => {
+      const current = readAppConfig().preferences
+      const next: Preferences = {
+        defaultMarket: patch.defaultMarket ?? current.defaultMarket,
+        defaultPropertyType: patch.defaultPropertyType ?? current.defaultPropertyType
+      }
+      updateAppConfig({ preferences: next })
+      return next
     }
   )
 }

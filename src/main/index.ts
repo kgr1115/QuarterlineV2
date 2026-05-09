@@ -5,6 +5,7 @@ import { readAppConfig, updateAppConfig } from './app-config'
 import { closeActiveWorkspace, openWorkspace } from './workspace-manager'
 import { installCrashHandlers, logCrash } from './crash-log'
 import { buildAppMenu } from './app-menu'
+import { initAutoUpdater } from './auto-updater'
 
 installCrashHandlers()
 
@@ -87,6 +88,7 @@ app.whenReady().then(() => {
   restoreLastWorkspace()
   createWindow()
   buildAppMenu(() => mainWindow)
+  initAutoUpdater()
 })
 
 app.on('window-all-closed', () => {

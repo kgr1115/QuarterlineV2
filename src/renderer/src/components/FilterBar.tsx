@@ -10,17 +10,21 @@ export function FilterBar() {
   const typeLabel = current?.propertyType ?? '—'
 
   return (
-    <div className="filter-bar">
-      <div className="filter-segment">
+    <div className="filter-bar" role="toolbar" aria-label="Workspace filters">
+      <div className="filter-segment" role="group" aria-label="Analysis level">
         <button
+          type="button"
           className={`filter-segment-btn ${level === 'market' ? 'active' : ''}`}
           onClick={() => setLevel('market')}
+          aria-pressed={level === 'market'}
         >
           Market Level
         </button>
         <button
+          type="button"
           className={`filter-segment-btn ${level === 'property' ? 'active' : ''}`}
           onClick={() => setLevel('property')}
+          aria-pressed={level === 'property'}
         >
           Property Level
         </button>

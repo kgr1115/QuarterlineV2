@@ -26,3 +26,12 @@ nsis:
   uninstallDisplayName: QuarterlineV2 ${version}
   createDesktopShortcut: true
   createStartMenuShortcut: true
+
+# Auto-update publish provider. Uncomment and adjust when a release
+# pipeline is configured. Without this, electron-updater logs a
+# "no publish config" error on startup (caught and written to
+# ~/.quarterline/logs/crash.log) — the app continues to run normally.
+# publish:
+#   provider: github
+#   owner: kgrau
+#   repo: QuarterlineV2
