@@ -138,21 +138,22 @@ export function ScenarioControls() {
   const option = useMemo(
     () => ({
       backgroundColor: 'transparent',
-      grid: { left: 56, right: 56, top: 32, bottom: 36 },
+      grid: { left: 56, right: 56, top: 16, bottom: 56 },
       legend: {
         textStyle: { color: '#94a3b8', fontSize: 11 },
-        top: 4,
-        right: 8,
+        bottom: 4,
+        left: 'center',
         icon: 'roundRect',
-        itemWidth: 10,
-        itemHeight: 6
+        itemWidth: 12,
+        itemHeight: 4,
+        itemGap: 16
       },
       tooltip: {
         trigger: 'axis',
         backgroundColor: '#1e293b',
         borderColor: '#334155',
         textStyle: { color: '#f8fafc', fontSize: 12 },
-        valueFormatter: (v: number, _i: number) =>
+        valueFormatter: (v: number) =>
           typeof v === 'number' ? v.toFixed(2) : String(v)
       },
       xAxis: {
@@ -170,7 +171,7 @@ export function ScenarioControls() {
         {
           type: 'value',
           name: '$/SF',
-          nameTextStyle: { color: '#64748b', fontSize: 10 },
+          nameTextStyle: { color: '#64748b', fontSize: 10, padding: [0, 0, 0, -32] },
           axisLine: { show: false },
           splitLine: { lineStyle: { color: '#1e293b' } },
           axisLabel: {
@@ -181,8 +182,8 @@ export function ScenarioControls() {
         },
         {
           type: 'value',
-          name: 'Value Index',
-          nameTextStyle: { color: '#64748b', fontSize: 10 },
+          name: 'Index',
+          nameTextStyle: { color: '#64748b', fontSize: 10, padding: [0, -24, 0, 0] },
           axisLine: { show: false },
           splitLine: { show: false },
           axisLabel: {
@@ -194,24 +195,24 @@ export function ScenarioControls() {
       ],
       series: [
         {
-          name: 'Actual asking rate',
+          name: 'Rent (actual)',
           type: 'line',
           yAxisIndex: 0,
           smooth: true,
           data: actual.rent,
-          lineStyle: { color: '#94a3b8', width: 2, type: 'dashed' },
+          lineStyle: { color: '#94a3b8', width: 1.5, type: 'dashed' },
           itemStyle: { color: '#94a3b8' },
-          symbolSize: 5
+          symbolSize: 4
         },
         {
-          name: 'Simulated asking rate',
+          name: 'Rent (simulated)',
           type: 'line',
           yAxisIndex: 0,
           smooth: true,
           data: simulated.rent,
-          lineStyle: { color: '#6366f1', width: 2.5 },
+          lineStyle: { color: '#6366f1', width: 2 },
           itemStyle: { color: '#6366f1' },
-          symbolSize: 6,
+          symbolSize: 5,
           areaStyle: {
             color: {
               type: 'linear',
@@ -220,21 +221,21 @@ export function ScenarioControls() {
               x2: 0,
               y2: 1,
               colorStops: [
-                { offset: 0, color: 'rgba(99,102,241,0.35)' },
+                { offset: 0, color: 'rgba(99,102,241,0.25)' },
                 { offset: 1, color: 'rgba(99,102,241,0)' }
               ]
             }
           }
         },
         {
-          name: 'Implied value index',
+          name: 'Value Index',
           type: 'line',
           yAxisIndex: 1,
           smooth: true,
           data: simulated.valueIndex,
-          lineStyle: { color: '#d946ef', width: 2.5 },
+          lineStyle: { color: '#d946ef', width: 2 },
           itemStyle: { color: '#d946ef' },
-          symbolSize: 6
+          symbolSize: 5
         }
       ]
     }),
