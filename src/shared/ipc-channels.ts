@@ -53,8 +53,32 @@ export const IpcChannels = {
   REPORT_GENERATE_NARRATIVE: 'report:generate-narrative',
   REPORT_EXPORT_PDF: 'report:export-pdf',
   REPORT_LIST_EXPORTS: 'report:list-exports',
-  REPORT_OPEN_EXPORT: 'report:open-export'
+  REPORT_OPEN_EXPORT: 'report:open-export',
+
+  APP_GET_INFO: 'app:get-info',
+  APP_OPEN_QUARTERLINE_FOLDER: 'app:open-quarterline-folder',
+  APP_OPEN_LOG_FOLDER: 'app:open-log-folder',
+  APP_REPORT_RENDERER_ERROR: 'app:report-renderer-error',
+  APP_MENU_ACTION: 'app:menu-action'
 } as const
+
+export type MenuAction =
+  | 'new-workspace'
+  | 'close-workspace'
+  | 'route:portfolio'
+  | 'route:reports'
+  | 'route:data-studio'
+  | 'route:settings'
+
+export type AppInfo = {
+  appVersion: string
+  electronVersion: string
+  nodeVersion: string
+  chromeVersion: string
+  quarterlineRoot: string
+  workspacesRoot: string
+  logsPath: string
+}
 
 export type DbStatusResult = {
   connected: boolean

@@ -3,6 +3,10 @@ import { join } from 'path'
 import { registerIpcHandlers } from './ipc-handlers'
 import { readAppConfig, updateAppConfig } from './app-config'
 import { closeActiveWorkspace, openWorkspace } from './workspace-manager'
+import { installCrashHandlers, logCrash } from './crash-log'
+import { buildAppMenu } from './app-menu'
+
+installCrashHandlers()
 
 let mainWindow: BrowserWindow | null = null
 
@@ -65,6 +69,7 @@ function restoreLastWorkspace(): void {
   try {
     openWorkspace(lastWorkspaceId)
   } catch (err) {
+    logCrash('restoreLastWorkspace', err)
     console.warn(
       `Could not restore workspace "${lastWorkspaceId}":`,
       err instanceof Error ? err.message : err
@@ -73,10 +78,15 @@ function restoreLastWorkspace(): void {
   }
 }
 
+export function getMainWindow(): BrowserWindow | null {
+  return mainWindow
+}
+
 app.whenReady().then(() => {
   registerIpcHandlers()
   restoreLastWorkspace()
   createWindow()
+  buildAppMenu(() => mainWindow)
 })
 
 app.on('window-all-closed', () => {

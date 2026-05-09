@@ -3,6 +3,7 @@ import type {
   AiConfigSaveInput,
   AiConnectionResult,
   AiSynthesisGenerationResult,
+  AppInfo,
   CsvImportSummary,
   DbStatusResult,
   ExternalChangeScanResult,
@@ -10,6 +11,7 @@ import type {
   JsonImportSummary,
   LeaseRow,
   MarketStatRow,
+  MenuAction,
   NarrativeGenerationResult,
   PingResult,
   PropertyRow,
@@ -87,6 +89,17 @@ declare global {
       bridge: {
         scanChanges: () => Promise<ExternalChangeScanResult>
         ackChanges: () => Promise<null>
+      }
+      app: {
+        getInfo: () => Promise<AppInfo>
+        openQuarterlineFolder: () => Promise<null>
+        openLogFolder: () => Promise<null>
+        reportRendererError: (payload: {
+          message: string
+          stack?: string
+          componentStack?: string
+        }) => Promise<null>
+        onMenuAction: (handler: (action: MenuAction) => void) => () => void
       }
       reportSections: {
         list: () => Promise<ReportSection[]>

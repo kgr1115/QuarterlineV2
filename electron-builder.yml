@@ -1,5 +1,7 @@
 appId: com.quarterline.v2
 productName: QuarterlineV2
+copyright: Copyright (c) 2026 Kyle Rauch
+artifactName: QuarterlineV2-Setup-${version}-${arch}.${ext}
 directories:
   buildResources: build
   output: dist
@@ -20,3 +22,7 @@ nsis:
   perMachine: false
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false
+  shortcutName: QuarterlineV2
+  uninstallDisplayName: QuarterlineV2 ${version}
+  createDesktopShortcut: true
+  createStartMenuShortcut: true

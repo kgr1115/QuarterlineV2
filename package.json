@@ -1,8 +1,11 @@
 {
   "name": "quarterline-v2",
   "version": "0.1.0",
-  "description": "Desktop CRE research and reporting platform",
+  "description": "Desktop CRE research and reporting platform for institutional analysts",
   "main": "./out/main/index.js",
+  "homepage": "https://github.com/kgrau/QuarterlineV2",
+  "productName": "QuarterlineV2",
+  "copyright": "Copyright (c) 2026 Kyle Rauch",
   "scripts": {
     "start": "electron-vite dev",
     "build": "electron-vite build",

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import type {
   AiConfigPublic,
-  AiConnectionResult
+  AiConnectionResult,
+  AppInfo
 } from '../../../shared/ipc-channels'
 
 const MODELS = [
@@ -13,6 +14,7 @@ const MODELS = [
 
 export function SettingsView() {
   const [config, setConfig] = useState<AiConfigPublic | null>(null)
+  const [appInfo, setAppInfo] = useState<AppInfo | null>(null)
   const [apiKey, setApiKey] = useState('')
   const [model, setModel] = useState(MODELS[0].id)
   const [busy, setBusy] = useState(false)
@@ -31,6 +33,13 @@ export function SettingsView() {
         if (cancelled) return
         setConfig(cfg)
         setModel(cfg.model || MODELS[0].id)
+      })
+      .catch(() => {})
+    window.quarterline.app
+      .getInfo()
+      .then((info) => {
+        if (cancelled) return
+        setAppInfo(info)
       })
       .catch(() => {})
     return () => {
@@ -216,6 +225,49 @@ export function SettingsView() {
           app detects the change and offers to import it from the Portfolio
           view.
         </p>
+      </div>
+
+      <div className="settings-section">
+        <h2 className="settings-title">About</h2>
+        <p className="settings-help">
+          Application metadata and where workspace files live on disk.
+        </p>
+        {appInfo ? (
+          <div className="settings-grid">
+            <div className="settings-grid-key">App version</div>
+            <div className="settings-grid-value">{appInfo.appVersion}</div>
+            <div className="settings-grid-key">Electron</div>
+            <div className="settings-grid-value">{appInfo.electronVersion}</div>
+            <div className="settings-grid-key">Node</div>
+            <div className="settings-grid-value">{appInfo.nodeVersion}</div>
+            <div className="settings-grid-key">Chromium</div>
+            <div className="settings-grid-value">{appInfo.chromeVersion}</div>
+            <div className="settings-grid-key">Workspaces folder</div>
+            <div className="settings-grid-value">{appInfo.workspacesRoot}</div>
+            <div className="settings-grid-key">Crash log</div>
+            <div className="settings-grid-value">{appInfo.logsPath}</div>
+          </div>
+        ) : (
+          <div className="settings-help">Loading…</div>
+        )}
+        <div className="settings-actions">
+          <button
+            type="button"
+            className="dialog-btn dialog-btn-secondary"
+            onClick={() => void window.quarterline.app.openQuarterlineFolder()}
+            disabled={!appInfo}
+          >
+            Open workspaces folder
+          </button>
+          <button
+            type="button"
+            className="dialog-btn dialog-btn-secondary"
+            onClick={() => void window.quarterline.app.openLogFolder()}
+            disabled={!appInfo}
+          >
+            Open log folder
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -191,6 +191,21 @@ export function SynthesisCards() {
     </button>
   ) : null
 
+  if (generating && cards.length === 0) {
+    return (
+      <div className="tier-row cols-3" aria-busy="true" aria-label="Generating synthesis cards">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="synthesis-card-skeleton">
+            <div className="skeleton skeleton-line short" />
+            <div className="skeleton skeleton-line full" />
+            <div className="skeleton skeleton-line full" />
+            <div className="skeleton skeleton-line long" />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   if (cards.length === 0 && !adding) {
     return (
       <>

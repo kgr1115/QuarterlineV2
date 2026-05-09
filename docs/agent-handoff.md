@@ -8,7 +8,10 @@ QuarterlineV2 is a downloadable desktop app for institutional CRE research
 and reporting. Implementation is underway. Milestones 0-6 are complete.
 M7 (AI Integration) and M8 (Report Assembly and Export) both have their
 implementations landed and are awaiting user verification on Windows
-(M7 needs a live Anthropic key; M8 needs a GUI walkthrough).
+(M7 needs a live Anthropic key; M8 needs a GUI walkthrough). M9
+(Polish, Packaging, Release Prep) is in progress in parallel —
+Phase 1 covers crash logging, renderer error boundary, native menu
+with keyboard shortcuts, installer metadata, and Settings app-info.
 
 ## Resolved Decisions (see `docs/decision-log.md`)
 

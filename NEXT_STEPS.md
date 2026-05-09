@@ -9,6 +9,10 @@ Date: 2026-05-09
   pending live API call by the user.
 - Milestone 8 (Report Assembly and Export): **In progress** —
   implementation landed, pending GUI walkthrough on Windows.
+- Milestone 9 (Polish, Packaging, Release Prep): **In progress** —
+  Phase 1 (crash logging, error boundary, native menu, installer
+  metadata, Settings app-info) underway in parallel; runs
+  independently of M7/M8 verification.
 
 The app now offers the full report-assembly path: edit narratives
 inline, reorder/include sections, optionally generate narratives via
@@ -39,16 +43,23 @@ export to PDF via Electron's `printToPDF` into the workspace's
 
    If both pass, promote M7 and M8 to **Complete** and start M9.
 
-2. **Begin Milestone 9 (Polish, Packaging, and Release Prep)** at any
-   time — M9 doesn't depend on M7/M8 verification.
-   - Windows installer polish (icon, metadata, start-menu entry).
-   - Auto-update mechanism (electron-updater).
-   - Error handling and crash reporting.
-   - Performance optimization for large workspaces.
-   - Keyboard shortcuts.
-   - Empty-state designs and loading skeletons.
-   - Accessibility pass (keyboard nav, screen reader labels, contrast).
-   - User-facing settings (default market, workspace location).
+2. **Continue Milestone 9 (Polish, Packaging, and Release Prep).**
+   Phase 1 is in progress; later phases below.
+   - Phase 1 (in progress 2026-05-09):
+     - Main-process crash logging to `~/.quarterline/logs/`.
+     - Renderer error boundary (no white-screen-of-death).
+     - Native application menu with keyboard shortcuts
+       (Ctrl+N, Ctrl+,, Ctrl+1-6, Cut/Copy/Paste, DevTools).
+     - Installer metadata polish (author, copyright, NSIS naming).
+     - Settings app-info panel (version, workspace folder root,
+       open-folder button).
+     - Empty/loading state pass.
+   - Phase 2 (queued):
+     - Auto-update mechanism (electron-updater + GitHub releases).
+     - Performance optimization for large workspaces.
+     - Accessibility pass (keyboard nav, screen reader labels,
+       contrast).
+     - User-facing settings (default market, workspace location).
 
 ## Open Decisions Still to Resolve
 

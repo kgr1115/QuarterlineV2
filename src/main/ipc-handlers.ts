@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { IpcChannels } from '../shared/ipc-channels'
@@ -7,6 +7,7 @@ import type {
   AiConfigSaveInput,
   AiConnectionResult,
   AiSynthesisGenerationResult,
+  AppInfo,
   ExternalChangeScanResult,
   HeadlineMetrics,
   LeaseRow,
@@ -26,6 +27,7 @@ import type {
   WindowState,
   WorkspaceCreateInput
 } from '../shared/ipc-channels'
+import { getCrashLogPathForDisplay, logCrash } from './crash-log'
 import {
   clearAiConfig,
   readAiConfig,
@@ -50,7 +52,12 @@ import {
 } from './report-assembly'
 import { exportReportPdf, listExports } from './report-export'
 import { renderReportHtml } from './report-render'
-import { getWorkspaceDbPath, getWorkspaceFolder } from './paths'
+import {
+  getQuarterlineRoot,
+  getWorkspaceDbPath,
+  getWorkspaceFolder,
+  getWorkspacesRoot
+} from './paths'
 import { readAppConfig, updateAppConfig } from './app-config'
 import {
   closeActiveWorkspace,
@@ -936,6 +943,35 @@ export function registerIpcHandlers(): void {
           .run(Number(payload.moduleRef))
       }
       return true
+    }
+  )
+
+  ipcMain.handle(IpcChannels.APP_GET_INFO, (): AppInfo => ({
+    appVersion: app.getVersion(),
+    electronVersion: process.versions.electron,
+    nodeVersion: process.versions.node,
+    chromeVersion: process.versions.chrome,
+    quarterlineRoot: getQuarterlineRoot(),
+    workspacesRoot: getWorkspacesRoot(),
+    logsPath: getCrashLogPathForDisplay()
+  }))
+
+  ipcMain.handle(IpcChannels.APP_OPEN_QUARTERLINE_FOLDER, async (): Promise<null> => {
+    await shell.openPath(getQuarterlineRoot())
+    return null
+  })
+
+  ipcMain.handle(IpcChannels.APP_OPEN_LOG_FOLDER, async (): Promise<null> => {
+    await shell.openPath(join(getQuarterlineRoot(), 'logs'))
+    return null
+  })
+
+  ipcMain.handle(
+    IpcChannels.APP_REPORT_RENDERER_ERROR,
+    (_event, payload: { message: string; stack?: string; componentStack?: string }): null => {
+      const composed = `${payload.message}\n${payload.stack ?? ''}\n${payload.componentStack ?? ''}`
+      logCrash('renderer', new Error(composed))
+      return null
     }
   )
 }

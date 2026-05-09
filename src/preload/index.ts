@@ -5,6 +5,7 @@ import type {
   AiConfigSaveInput,
   AiConnectionResult,
   AiSynthesisGenerationResult,
+  AppInfo,
   CsvImportSummary,
   DbStatusResult,
   ExternalChangeScanResult,
@@ -12,6 +13,7 @@ import type {
   JsonImportSummary,
   LeaseRow,
   MarketStatRow,
+  MenuAction,
   NarrativeGenerationResult,
   PingResult,
   PropertyRow,
@@ -131,6 +133,26 @@ const api = {
       ipcRenderer.invoke(IpcChannels.BRIDGE_SCAN_CHANGES),
     ackChanges: (): Promise<null> =>
       ipcRenderer.invoke(IpcChannels.BRIDGE_ACK_CHANGES)
+  },
+
+  app: {
+    getInfo: (): Promise<AppInfo> => ipcRenderer.invoke(IpcChannels.APP_GET_INFO),
+    openQuarterlineFolder: (): Promise<null> =>
+      ipcRenderer.invoke(IpcChannels.APP_OPEN_QUARTERLINE_FOLDER),
+    openLogFolder: (): Promise<null> =>
+      ipcRenderer.invoke(IpcChannels.APP_OPEN_LOG_FOLDER),
+    reportRendererError: (payload: {
+      message: string
+      stack?: string
+      componentStack?: string
+    }): Promise<null> =>
+      ipcRenderer.invoke(IpcChannels.APP_REPORT_RENDERER_ERROR, payload),
+    onMenuAction: (handler: (action: MenuAction) => void): (() => void) => {
+      const listener = (_e: Electron.IpcRendererEvent, action: MenuAction): void =>
+        handler(action)
+      ipcRenderer.on(IpcChannels.APP_MENU_ACTION, listener)
+      return () => ipcRenderer.removeListener(IpcChannels.APP_MENU_ACTION, listener)
+    }
   },
 
   reportSections: {

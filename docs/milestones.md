@@ -10,8 +10,10 @@ so each builds on the last. No V1 milestone history applies.
 ## Current Phase
 
 Status: Implementation. Milestones 0-6 complete. M7 (AI Integration)
-is in progress (awaiting live API call). M8 (Report Assembly and
-Export) is **in progress** in parallel.
+and M8 (Report Assembly and Export) are both in progress (awaiting
+live verification on Windows). M9 (Polish, Packaging, and Release
+Prep) is in progress in parallel — it does not depend on M7/M8
+verification.
 
 ## Milestone Authoring Rules
 
@@ -662,7 +664,14 @@ Owner: Chief Implementation Agent.
 
 Goal: Production-ready Windows release.
 
-Dependencies: Milestone 8.
+Dependencies: Milestone 8 (implementation; verification can run in
+parallel).
+
+Status: **In progress.** Started 2026-05-09. Phase 1 lands the
+foundational polish that pays compounding returns: main-process
+crash logging, renderer error boundary, native menu with keyboard
+shortcuts, installer metadata polish, and Settings app-info panel.
+Auto-update wiring and accessibility audit follow in later phases.
 
 Scope:
 
