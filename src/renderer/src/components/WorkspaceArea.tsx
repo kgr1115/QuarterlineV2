@@ -1,23 +1,10 @@
 import { useWorkspace } from '../state/workspace'
-
-function ModuleCard({
-  title,
-  placeholder
-}: {
-  title: string
-  placeholder: string
-}) {
-  return (
-    <div className="module-card">
-      <div className="module-header">
-        <span className="module-title">{title}</span>
-      </div>
-      <div className="module-body">
-        <div className="module-placeholder">{placeholder}</div>
-      </div>
-    </div>
-  )
-}
+import { KeyMetricsBanner } from './modules/KeyMetricsBanner'
+import { SynthesisCards } from './modules/SynthesisCards'
+import { MarketMap } from './modules/MarketMap'
+import { StackingPlan } from './modules/StackingPlan'
+import { FinancialTable } from './modules/FinancialTable'
+import { ScenarioControls } from './modules/ScenarioControls'
 
 type Props = {
   onCreateWorkspace: () => void
@@ -62,35 +49,18 @@ export function WorkspaceArea({ onCreateWorkspace }: Props) {
 
   return (
     <div className="workspace">
-      <div className="tier-row cols-3">
-        <ModuleCard
-          title="AI Synthesis"
-          placeholder="Insight cards will appear here"
-        />
-        <ModuleCard title="AI Synthesis" placeholder="Market trend analysis" />
-        <ModuleCard title="AI Synthesis" placeholder="Anomaly detection" />
-      </div>
+      <KeyMetricsBanner />
+
+      <SynthesisCards />
 
       <div className="tier-row cols-2">
-        <ModuleCard
-          title="Market Overview"
-          placeholder="2D market map with submarket boundaries"
-        />
-        <ModuleCard
-          title="Property Stacking Plan"
-          placeholder="Floor-by-floor occupancy grid"
-        />
+        <MarketMap />
+        <StackingPlan />
       </div>
 
       <div className="tier-row split-60-40">
-        <ModuleCard
-          title="Financial Overview"
-          placeholder="Market statistics table"
-        />
-        <ModuleCard
-          title="What-If Simulation"
-          placeholder="Scenario sliders and comparison chart"
-        />
+        <FinancialTable />
+        <ScenarioControls />
       </div>
     </div>
   )

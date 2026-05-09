@@ -3,14 +3,20 @@ import { IpcChannels } from '../shared/ipc-channels'
 import type {
   CsvImportSummary,
   DbStatusResult,
+  HeadlineMetrics,
   JsonImportSummary,
   LeaseRow,
   MarketStatRow,
   PingResult,
   PropertyRow,
+  ReportPin,
+  Scenario,
+  ScenarioInput,
   SourceFileRow,
   SourceIngestSummary,
   SubmarketStatRow,
+  SynthesisCard,
+  SynthesisCardInput,
   WindowState,
   Workspace,
   WorkspaceCreateInput
@@ -66,6 +72,36 @@ const api = {
       ipcRenderer.invoke(IpcChannels.DATA_LIST_LEASES),
     listSources: (): Promise<SourceFileRow[]> =>
       ipcRenderer.invoke(IpcChannels.DATA_LIST_SOURCES)
+  },
+
+  analysis: {
+    headlineMetrics: (): Promise<HeadlineMetrics> =>
+      ipcRenderer.invoke(IpcChannels.ANALYSIS_HEADLINE_METRICS),
+    listSynthesis: (): Promise<SynthesisCard[]> =>
+      ipcRenderer.invoke(IpcChannels.ANALYSIS_LIST_SYNTHESIS),
+    createSynthesis: (input: SynthesisCardInput): Promise<SynthesisCard> =>
+      ipcRenderer.invoke(IpcChannels.ANALYSIS_CREATE_SYNTHESIS, input),
+    listScenarios: (): Promise<Scenario[]> =>
+      ipcRenderer.invoke(IpcChannels.ANALYSIS_LIST_SCENARIOS),
+    saveScenario: (input: ScenarioInput): Promise<Scenario> =>
+      ipcRenderer.invoke(IpcChannels.ANALYSIS_SAVE_SCENARIO, input),
+    deleteScenario: (id: number): Promise<null> =>
+      ipcRenderer.invoke(IpcChannels.ANALYSIS_DELETE_SCENARIO, id)
+  },
+
+  report: {
+    listPins: (): Promise<ReportPin[]> =>
+      ipcRenderer.invoke(IpcChannels.REPORT_LIST_PINS),
+    togglePin: (
+      moduleType: string,
+      moduleRef: string,
+      section?: string
+    ): Promise<boolean> =>
+      ipcRenderer.invoke(IpcChannels.REPORT_TOGGLE_PIN, {
+        moduleType,
+        moduleRef,
+        section
+      })
   }
 }
 

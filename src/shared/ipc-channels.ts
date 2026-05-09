@@ -23,7 +23,16 @@ export const IpcChannels = {
   DATA_LIST_SUBMARKET_STATS: 'data:list:submarket-stats',
   DATA_LIST_PROPERTIES: 'data:list:properties',
   DATA_LIST_LEASES: 'data:list:leases',
-  DATA_LIST_SOURCES: 'data:list:sources'
+  DATA_LIST_SOURCES: 'data:list:sources',
+
+  ANALYSIS_HEADLINE_METRICS: 'analysis:headline-metrics',
+  ANALYSIS_LIST_SYNTHESIS: 'analysis:list-synthesis',
+  ANALYSIS_CREATE_SYNTHESIS: 'analysis:create-synthesis',
+  ANALYSIS_LIST_SCENARIOS: 'analysis:list-scenarios',
+  ANALYSIS_SAVE_SCENARIO: 'analysis:save-scenario',
+  ANALYSIS_DELETE_SCENARIO: 'analysis:delete-scenario',
+  REPORT_TOGGLE_PIN: 'report:toggle-pin',
+  REPORT_LIST_PINS: 'report:list-pins'
 } as const
 
 export type DbStatusResult = {
@@ -150,4 +159,65 @@ export type SourceFileRow = {
   isConfidential: boolean
   sizeBytes: number
   relativePath: string
+}
+
+export type HeadlineMetrics = {
+  quarter: string
+  market: string
+  availabilityRate_pct: number | null
+  netAbsorption_SF: number | null
+  deliveries_SF: number | null
+  underConstruction_SF: number | null
+  avgAskingRate_dollarsSF: number | null
+}
+
+export type SynthesisCard = {
+  id: number
+  quarter: string
+  cardType: 'market_overview' | 'trend_alert' | 'anomaly' | 'opportunity'
+  title: string
+  body: string
+  metricValue: number | null
+  metricUnit: string | null
+  direction: 'up' | 'down' | 'flat' | null
+  source: 'manual' | 'built-in-ai' | 'external-ai'
+  generatedAt: string
+  pinned: boolean
+}
+
+export type SynthesisCardInput = {
+  cardType: SynthesisCard['cardType']
+  title: string
+  body: string
+  metricValue?: number | null
+  metricUnit?: string | null
+  direction?: SynthesisCard['direction']
+}
+
+export type Scenario = {
+  id: number
+  name: string
+  baseQuarter: string
+  interestRateShift_bps: number
+  rentGrowth_pct: number
+  capRateShift_bps: number
+  createdAt: string
+  updatedAt: string
+}
+
+export type ScenarioInput = {
+  id?: number
+  name: string
+  interestRateShift_bps: number
+  rentGrowth_pct: number
+  capRateShift_bps: number
+}
+
+export type ReportPin = {
+  id: number
+  moduleType: string
+  moduleRef: string
+  pinOrder: number
+  section: string | null
+  createdAt: string
 }

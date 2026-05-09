@@ -128,6 +128,47 @@ const MIGRATIONS: Migration[] = [
         );
       `)
     }
+  },
+  {
+    id: '0005-synthesis-cards-and-scenarios',
+    up: (db) => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS ai_synthesis_card (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          quarter TEXT NOT NULL,
+          card_type TEXT NOT NULL,
+          title TEXT NOT NULL,
+          body TEXT NOT NULL,
+          metric_value REAL,
+          metric_unit TEXT,
+          direction TEXT,
+          source TEXT NOT NULL DEFAULT 'manual',
+          generated_at TEXT NOT NULL,
+          pinned INTEGER NOT NULL DEFAULT 0
+        );
+
+        CREATE TABLE IF NOT EXISTS scenario (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          base_quarter TEXT NOT NULL,
+          interest_rate_shift_bps REAL NOT NULL DEFAULT 0,
+          rent_growth_pct REAL NOT NULL DEFAULT 0,
+          cap_rate_shift_bps REAL NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS report_pin (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          module_type TEXT NOT NULL,
+          module_ref TEXT NOT NULL,
+          pin_order INTEGER NOT NULL,
+          section TEXT,
+          created_at TEXT NOT NULL,
+          UNIQUE(module_type, module_ref)
+        );
+      `)
+    }
   }
 ]
 

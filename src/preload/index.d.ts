@@ -1,14 +1,20 @@
 import type {
   CsvImportSummary,
   DbStatusResult,
+  HeadlineMetrics,
   JsonImportSummary,
   LeaseRow,
   MarketStatRow,
   PingResult,
   PropertyRow,
+  ReportPin,
+  Scenario,
+  ScenarioInput,
   SourceFileRow,
   SourceIngestSummary,
   SubmarketStatRow,
+  SynthesisCard,
+  SynthesisCardInput,
   WindowState,
   Workspace,
   WorkspaceCreateInput
@@ -45,6 +51,22 @@ declare global {
         listProperties: () => Promise<PropertyRow[]>
         listLeases: () => Promise<LeaseRow[]>
         listSources: () => Promise<SourceFileRow[]>
+      }
+      analysis: {
+        headlineMetrics: () => Promise<HeadlineMetrics>
+        listSynthesis: () => Promise<SynthesisCard[]>
+        createSynthesis: (input: SynthesisCardInput) => Promise<SynthesisCard>
+        listScenarios: () => Promise<Scenario[]>
+        saveScenario: (input: ScenarioInput) => Promise<Scenario>
+        deleteScenario: (id: number) => Promise<null>
+      }
+      report: {
+        listPins: () => Promise<ReportPin[]>
+        togglePin: (
+          moduleType: string,
+          moduleRef: string,
+          section?: string
+        ) => Promise<boolean>
       }
     }
   }

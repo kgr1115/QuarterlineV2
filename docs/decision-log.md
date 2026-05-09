@@ -549,3 +549,113 @@ requiring header-tolerant alias additions to `csv-import.ts`. That's a
 small, additive change rather than a structural one.
 
 Follow-up: Begin Milestone 6 (Analysis Modules).
+
+## 2D Map Library: Leaflet
+
+Decision: Use Leaflet (via `react-leaflet`) for the M6 2D market map.
+
+Date: 2026-05-09
+
+Owner: Project Owner + Chief Implementation Agent
+
+Context: M6 needs a 2D map with submarket boundary polygons colored by a
+selected metric. The 3D upgrade is a post-MVP goal documented in M10+.
+
+Options considered:
+
+- **Mapbox GL JS** — beautiful, vector tiles, extensive styling, but
+  requires an API token and bills per map load. Not appropriate for a
+  desktop app whose users vary.
+- **Leaflet** — open-source, mature, no API key, raster tiles from
+  OpenStreetMap by default. Simple polygon rendering with `L.geoJSON`.
+- **deck.gl / d3-geo** — lighter still, more control. deck.gl is the
+  natural successor when 3D arrives.
+
+Decision made: Leaflet for the MVP. When the 3D map module lands
+post-MVP, swap to deck.gl in the same panel region (the data contract
+stays the same — submarket polygons + a metric per polygon).
+
+Reasoning: No API token, predictable rendering, plenty good for the
+flat colored-polygon view. Lower-risk than committing to deck.gl now
+when we don't yet need 3D.
+
+Risks: Leaflet rendering is canvas/SVG, not WebGL. Performance ceiling
+is far above what an Atlanta-scale workspace will hit. Re-evaluate if
+we render thousands of properties as point markers.
+
+Follow-up: M10+ swaps the map module to deck.gl for the 3D upgrade.
+
+## Charting Library: Apache ECharts
+
+Decision: Use Apache ECharts (via `echarts-for-react`) for charts in
+M6 onward.
+
+Date: 2026-05-09
+
+Owner: Project Owner + Chief Implementation Agent
+
+Context: M6 introduces charts on tier 1 (synthesis card sparklines), tier
+3 (scenario actual-vs-simulated curves), and the report cover (combo
+bar+line for net absorption + deliveries + vacancy). The CBRE reference
+report sets the visual quality bar.
+
+Options considered:
+
+- **Recharts** (~150KB) — clean React API, but visual polish is modest
+  and dense combo charts require manual composition.
+- **Visx** — composable d3 primitives in React; powerful, but more code
+  per chart.
+- **Apache ECharts** (~750KB) — strong defaults, dense interactivity
+  (zoom, brush, tooltips), composes combo charts naturally,
+  imperative API bridged via `echarts-for-react`.
+- **Highcharts** — beautiful, but commercial-license fees.
+
+Decision made: Apache ECharts.
+
+Reasoning: The product owner wants beautiful charts. ECharts ships the
+best-looking defaults of the open-source field, especially for the
+multi-axis combo charts the CBRE report uses. Bundle size is a
+non-issue inside an Electron desktop app.
+
+Risks:
+
+- Imperative API: a small ergonomic cost vs. JSX-native libraries.
+  Mitigated by `echarts-for-react`.
+- Tree-shaking: importing the full `echarts` brings everything. We will
+  import from `echarts/core` and pick only the chart and component types
+  we use, keeping the bundle tight.
+
+Follow-up: When M6 charts land, document the import pattern and the set
+of registered components in a short note in `docs/architecture.md`.
+
+## Submarket Boundary Source for MVP: Hand-Authored GeoJSON
+
+Decision: Ship simplified hand-authored GeoJSON polygons for the five
+sample Atlanta submarkets in the MVP rather than depending on an
+external boundary data source.
+
+Date: 2026-05-09
+
+Owner: Project Owner + Chief Implementation Agent
+
+Context: M6 needs submarket polygons to render the 2D market map. The
+sample data covers five Atlanta submarkets (Midtown, Buckhead,
+Cumberland/Galleria, North Fulton, Central Perimeter). Real CRE
+boundary data is a separate workstream tracked in
+`docs/market-boundary-library.md`.
+
+Decision made: Author a small simplified GeoJSON file with approximate
+polygons for the five sample submarkets, ship it under
+`docs/reference-artifacts/samples/`. The renderer reads it as part of
+the M6 module.
+
+Reasoning: The map module's contract (a polygon FeatureCollection +
+metric per submarket) is what matters. The polygon precision is
+visualization polish that can be improved when a real boundary library
+is in place.
+
+Risks: Approximate polygons are not authoritative for any real client
+work. Mark the file clearly as a sample.
+
+Follow-up: When the boundary library lands, swap the GeoJSON source
+for the canonical polygons. The map module code stays unchanged.

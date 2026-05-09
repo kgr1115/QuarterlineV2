@@ -10,7 +10,7 @@ so each builds on the last. No V1 milestone history applies.
 ## Current Phase
 
 Status: Implementation. Milestones 0-5 complete. Milestone 6 (Analysis
-Modules) is next.
+Modules) is **in progress**.
 
 ## Milestone Authoring Rules
 
@@ -298,6 +298,60 @@ Owner: Chief Product and Frontend Agent + Chief Reporting Agent.
 Goal: Build the three workspace tiers with real data.
 
 Dependencies: Milestone 5.
+
+Status: **In progress.** Started 2026-05-09. All six modules implemented
+the same day; awaiting user GUI walkthrough on Windows to promote to
+**Complete**.
+
+Tech choices (see `docs/decision-log.md`):
+
+- 2D map: Leaflet (+ react-leaflet bridge).
+- Charts: Apache ECharts (+ echarts-for-react bridge).
+- Atlanta submarket boundaries: hand-authored simplified GeoJSON for
+  the five submarkets in the sample data; real boundary library is a
+  later concern (see `docs/market-boundary-library.md`).
+
+Work to date:
+
+- Schema migration `0005-synthesis-cards-and-scenarios` adds
+  `ai_synthesis_card`, `scenario`, and `report_pin` tables.
+- New IPC channels: `analysis:headline-metrics`,
+  `analysis:list-synthesis`, `analysis:create-synthesis`,
+  `analysis:list-scenarios`, `analysis:save-scenario`,
+  `analysis:delete-scenario`, `report:list-pins`,
+  `report:toggle-pin`. Pin toggle keeps `ai_synthesis_card.pinned` in
+  sync with the `report_pin` table for synthesis-type modules.
+- Renderer modules under `src/renderer/src/components/modules/`:
+  - `KeyMetricsBanner.tsx` — five hero metrics (availability rate, net
+    absorption, deliveries, under construction, asking rate) computed
+    from the imported market-stat rows. Directional arrows show sign
+    for absorption.
+  - `SynthesisCards.tsx` — three-card tier with manual-author flow
+    (M7 will wire AI-generated cards). Empty state explains the
+    manual + external-AI paths. Per-card pin toggle.
+  - `MarketMap.tsx` — Leaflet map with OSM tiles, joins
+    `atlanta-submarkets.geojson` with `submarket_statistic` rows,
+    colors polygons by a selected metric (vacancy / availability /
+    asking rate / net absorption). Click-to-select shows a detail
+    panel below the map. Falls back to a placeholder for
+    non-Atlanta markets.
+  - `StackingPlan.tsx` — property selector + floor grid, cells
+    colored occupied / expiring (≤12 months) / vacant. Hover tooltip
+    shows tenant, suite, RSF, expiration, WALT.
+  - `FinancialTable.tsx` — dense CBRE-style table with By-Class /
+    By-Submarket toggle, sticky header, weighted-average totals
+    footer, pin button.
+  - `ScenarioControls.tsx` — three sliders (interest-rate shift,
+    rent growth, cap-rate shift), ECharts line chart showing actual
+    vs. simulated asking rate over 8 quarters, save / update /
+    select-existing scenario flow, pin button.
+- WorkspaceArea now composes: KeyMetricsBanner above three tier rows
+  (synthesis cards, then map+stacking, then financial+scenario).
+- Sample asset: bundled `src/renderer/src/data/atlanta-submarkets.geojson`
+  with five hand-authored simplified polygons; copy lives under
+  `docs/reference-artifacts/samples/` as a documented fixture.
+- Verified: `npm run build` clean, `npm run smoke-test` still 31/31
+  (migrations apply cleanly on top of existing M4/M5 workspaces).
 
 Scope:
 
