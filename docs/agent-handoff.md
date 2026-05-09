@@ -118,7 +118,9 @@ portfolio sidebar, compact global filters, AI synthesis cards, 3D market map,
 ## Active Milestones
 
 **M4 (Workspace Management and Navigation)** and **M5 (Data Ingestion and
-Storage)** are both in progress. Implementations landed 2026-05-09; the
-next session should run a Windows smoke test against the acceptance
-criteria in `docs/milestones.md`, then promote both milestones to
-**Complete** and start Milestone 6 (Analysis Modules).
+Storage)** are both in progress. Implementations landed 2026-05-09 and the
+data layer was verified the same day by `npm run smoke-test` (31/31
+checks). What remains is a manual GUI walkthrough. The next session should
+either run that walkthrough and promote both milestones to **Complete**,
+or start Milestone 6 (Analysis Modules) in parallel — the M6 work doesn't
+depend on the GUI verification of M4/M5.

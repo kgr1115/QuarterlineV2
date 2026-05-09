@@ -6,50 +6,45 @@ Date: 2026-05-09
 
 - Milestones 0-3: **Complete.**
 - Milestone 4 (Workspace Management and Navigation): **In progress** —
-  implementation done, awaiting Windows smoke test.
-- Milestone 5 (Data Ingestion and Storage): **In progress** —
-  implementation done, awaiting Windows smoke test.
+  backend verified by `npm run smoke-test` (31/31 checks); GUI walkthrough
+  pending.
+- Milestone 5 (Data Ingestion and Storage): **In progress** — backend
+  verified by `npm run smoke-test` (31/31 checks); GUI walkthrough pending.
 
-The Electron scaffold runs. Workspaces persist under `~/.quarterline/`.
-Imports (CSV market/submarket statistics, JSON property+lease data, file
-ingestion into `sources/`) drive a Data Studio view in the renderer with
-sub-tabs and tabular numerics. Each successful import re-exports
-`data/*.json` per the AI bridge spec and refreshes the WORKSPACE.md
-manifest's "Current Data Summary".
+The data layer is proven end-to-end via `npm run smoke-test`. What remains
+is interactive UI verification — clicking through the workspace switcher,
+the create-workspace modal, the Data Studio import buttons, and confirming
+the visuals render correctly.
 
 ## Immediate Priorities
 
-1. **Smoke-test M4 + M5 on Windows.**
+1. **Run the GUI walkthrough.**
 
-   Workspace lifecycle (M4):
-   - `npm start`, see the empty-state card.
-   - Create "Atlanta Office Q1 2026"; folder appears under
-     `%USERPROFILE%\.quarterline\workspaces\atlanta-office-q1-2026\`.
-   - Switch / close / reopen via the sidebar switcher.
-   - Restart app → window position and last workspace restore.
+   Run `npm start` and check:
 
-   Data ingestion (M5), with the Atlanta workspace open:
-   - Open the "Data Studio" sidebar item.
-   - Click **Import market stats CSV**, pick
-     `docs/reference-artifacts/samples/atlanta-market-stats-q1-2026.csv`.
-     Expect 4 rows in the Market Stats tab; verify
-     `<workspace>/data/market-statistics.json` exists with the schema.
-   - **Import submarket stats CSV** with the submarket sample → 5 rows.
-   - **Import property / lease JSON** with the Atlanta JSON sample →
-     3 properties, 3 leases. Verify `data/property-data.json` and
-     `data/lease-data.json` are generated.
-   - **Add source file(s)** with any local file → appears in Source Files
-     tab; lives under `<workspace>/sources/`; is **not** referenced in
-     `data/*.json`.
-   - Open `WORKSPACE.md`; "Current Data Summary" shows the row counts and
-     headline metrics.
-   - Re-importing the same CSV replaces the quarter's rows (no
-     duplicates).
-   - Importing a malformed CSV (delete a required column) shows a clear
-     validation banner with row/column details.
+   M4 (workspace lifecycle):
+   - Sidebar switcher dropdown opens; "+ New workspace" launches the modal.
+   - Create "Atlanta Office Q1 2026" via the modal.
+   - Status bar and filter bar update with the workspace context.
+   - Close and reopen the app — last workspace and window position
+     restore.
+   - "Close current workspace" returns to the empty-state card.
+
+   M5 (data ingestion UI):
+   - Click sidebar **Data Studio** — view changes.
+   - **Import market stats CSV** with
+     `docs/reference-artifacts/samples/atlanta-market-stats-q1-2026.csv` →
+     green banner, Market Stats tab populated.
+   - **Import submarket stats CSV** with
+     `atlanta-submarket-stats-q1-2026.csv` → 5 rows.
+   - **Import property / lease JSON** with `atlanta-properties-leases.json`
+     → 3 properties, 3 leases.
+   - **Add source file(s)** with any local file → Source Files tab shows it.
+   - Open `WORKSPACE.md` and confirm the "Current Data Summary" reflects
+     the imports.
 
    If clean, promote M4 and M5 to **Complete** in `docs/milestones.md`,
-   add decision-log entries, and start M6.
+   add a verification date, and start M6.
 
 2. **Begin Milestone 6 (Analysis Modules)** once M4 + M5 are verified.
    - Replace placeholder module cards with real modules driven by
@@ -83,4 +78,6 @@ manifest's "Current Data Summary".
 - Renderer: workspace context, sidebar routing, Data Studio view with
   five sub-tabs and import actions, validation banner.
 - Sample import fixtures under `docs/reference-artifacts/samples/`.
+- Automated smoke test: `npm run smoke-test` runs the full data path
+  under Electron and verifies file artifacts.
 - ESLint + Prettier, Windows packaging via electron-builder.

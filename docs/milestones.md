@@ -133,8 +133,9 @@ Goal: Multi-workspace creation, persistence, and navigation.
 
 Dependencies: Milestone 3.
 
-Status: **In progress.** Started 2026-05-09. Implementation delivered the
-same day; awaiting Windows smoke test to promote to **Complete**.
+Status: **In progress.** Started 2026-05-09. Backend verified by automated
+smoke test the same day (`npm run smoke-test`, 31/31 checks). Awaiting
+human GUI walkthrough to promote to **Complete**.
 
 Work to date:
 
@@ -162,19 +163,27 @@ Work to date:
   `StatusBar` shows workspace name and DB status.
 - `src/main/index.ts` saves window bounds on close and restores them on
   launch; restores the last opened workspace if present.
-- Verified: `npm run build` and `npx tsc --noEmit` clean for both tsconfigs.
 
-Pending verification (Windows manual smoke test):
+Verified (automated, 2026-05-09):
 
-- `npm start` launches and shows the empty-state card.
-- Creating "Atlanta Office Q1 2026" produces
-  `~/.quarterline/workspaces/atlanta-office-q1-2026/` with `WORKSPACE.md`,
-  `workspace.db`, and the subfolder layout.
-- The workspace appears in the sidebar switcher; switching loads the
-  context (status bar and filter bar update).
-- Closing and reopening the app restores the same workspace and window
-  position.
-- "Close current workspace" returns to the empty state.
+- `npm run build` and `npx tsc --noEmit` clean.
+- App launches via `npm start` without errors (main + preload + renderer
+  bundles built; dev server up).
+- `npm run smoke-test` (Electron-runtime test): workspace creation produces
+  the full folder layout, `WORKSPACE.md` and `workspace.db` are written,
+  workspace can be opened, the workspace context block in `WORKSPACE.md`
+  matches the inputs.
+
+Pending verification (manual GUI walkthrough):
+
+- Sidebar workspace switcher dropdown opens and shows the workspaces.
+- "+ New workspace" modal opens, inputs validate, submit creates the
+  workspace and closes the modal.
+- Switching between workspaces loads the correct context (status bar and
+  filter bar update live).
+- Closing the app and reopening restores the last opened workspace and
+  the window's bounds.
+- "Close current workspace" returns to the empty-state card.
 
 Scope:
 
@@ -215,8 +224,9 @@ Goal: Import market data from CSV/JSON into a workspace.
 
 Dependencies: Milestone 4.
 
-Status: **In progress.** Started 2026-05-09. Implementation delivered the
-same day; awaiting Windows smoke test to promote to **Complete**.
+Status: **In progress.** Started 2026-05-09. Backend verified by automated
+smoke test the same day (`npm run smoke-test`, 31/31 checks). Awaiting
+human GUI walkthrough to promote to **Complete**.
 
 Work to date:
 
@@ -252,22 +262,28 @@ Work to date:
   matching the design-system spec.
 - Sample fixtures added under `docs/reference-artifacts/samples/` for
   smoke testing.
-- Verified: `npm run build` and `npx tsc --noEmit` clean.
 
-Pending verification (Windows manual smoke test):
+Verified (automated, 2026-05-09):
 
-- In an open workspace, import `atlanta-market-stats-q1-2026.csv` —
-  4 rows appear in the Market Stats tab and
-  `<workspace>/data/market-statistics.json` matches the AI-bridge schema.
-- Import `atlanta-submarket-stats-q1-2026.csv` — 5 rows in Submarket Stats
-  and `data/submarket-statistics.json` is generated.
-- Import `atlanta-properties-leases.json` — 3 properties and 3 leases,
-  `data/property-data.json` and `data/lease-data.json` are generated.
-- Ingest a sample source file — appears in Source Files tab, shows up
-  under `<workspace>/sources/`, and is NOT exposed in `data/*.json`.
-- `WORKSPACE.md` "Current Data Summary" reflects the imported numbers.
-- A malformed CSV (missing required column) shows a clear validation
-  error in the banner without writing rows.
+- `npm run build` and `npx tsc --noEmit` clean.
+- `npm run smoke-test` (Electron-runtime test) covers the full data path:
+  market stats CSV import (4 rows), submarket stats CSV import (5 rows),
+  property/lease JSON import (3 + 3), source file ingestion (with sha256
+  dedup), `data/*.json` exports written and parseable, `WORKSPACE.md`
+  "Current Data Summary" populated with row counts and headline metrics,
+  source file paths are NOT exposed in `data/*.json` or `WORKSPACE.md`,
+  and a malformed CSV (missing required `Property Class` column) is
+  rejected with header-level errors. 31/31 checks passed.
+
+Pending verification (manual GUI walkthrough):
+
+- Data Studio sidebar nav routes to the Data Studio view.
+- Each "Import …" button opens a file picker and runs the import.
+- Success banner appears with the row counts; error banner shows row /
+  column detail when an import fails.
+- Each tab's table renders the imported rows with proper formatting
+  (tabular numerics, parenthesized negatives).
+- Source Files tab shows the file metadata.
 
 Scope:
 
