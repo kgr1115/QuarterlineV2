@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
   ReportExportRow,
   ReportSection
@@ -7,10 +7,16 @@ import { useWorkspace } from '../state/workspace'
 
 type Mode = 'editor' | 'preview'
 
+const AUTOSAVE_DELAY_MS = 1500
+
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function formatClock(date: Date): string {
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
 export function ReportsView() {
@@ -30,6 +36,9 @@ export function ReportsView() {
     | { kind: 'busy'; message: string }
   >({ kind: 'idle' })
   const [aiConfigured, setAiConfigured] = useState(false)
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
+  const [autoSaving, setAutoSaving] = useState(false)
+  const autoSaveTimer = useRef<number | null>(null)
 
   const refresh = useCallback(async () => {
     if (!current) {
@@ -57,7 +66,6 @@ export function ReportsView() {
 
   useEffect(() => {
     void refresh()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current?.id])
 
   if (!current) {
@@ -95,6 +103,7 @@ export function ReportsView() {
     try {
       await window.quarterline.reportSections.updateNarrative(active.id, draft)
       setDirty(false)
+      setLastSavedAt(new Date())
       setFeedback({ kind: 'success', message: 'Narrative saved.' })
       const list = await window.quarterline.reportSections.list()
       setSections(list)
@@ -105,6 +114,44 @@ export function ReportsView() {
       })
     }
   }
+
+  // Debounced auto-save: 1.5s after last keystroke, persist if dirty.
+  useEffect(() => {
+    if (!active || !dirty) return
+    if (autoSaveTimer.current !== null) {
+      window.clearTimeout(autoSaveTimer.current)
+    }
+    const sectionId = active.id
+    const snapshot = draft
+    autoSaveTimer.current = window.setTimeout(() => {
+      autoSaveTimer.current = null
+      setAutoSaving(true)
+      window.quarterline.reportSections
+        .updateNarrative(sectionId, snapshot)
+        .then(() => {
+          setDirty(false)
+          setLastSavedAt(new Date())
+        })
+        .catch((err) => {
+          setFeedback({
+            kind: 'error',
+            message: err instanceof Error ? err.message : 'Auto-save failed.'
+          })
+        })
+        .finally(() => setAutoSaving(false))
+    }, AUTOSAVE_DELAY_MS)
+    return () => {
+      if (autoSaveTimer.current !== null) {
+        window.clearTimeout(autoSaveTimer.current)
+        autoSaveTimer.current = null
+      }
+    }
+  }, [active, dirty, draft])
+
+  // Reset save indicator when switching sections.
+  useEffect(() => {
+    setLastSavedAt(null)
+  }, [activeId])
 
   const onMove = async (direction: -1 | 1) => {
     if (!active) return
@@ -411,6 +458,15 @@ export function ReportsView() {
             <div className="reports-editor-meta">
               <strong>{active.title}</strong>
               <span className="reports-editor-path">{active.narrativePath}</span>
+              <span className="reports-editor-savestate" aria-live="polite">
+                {autoSaving
+                  ? 'Saving…'
+                  : dirty
+                    ? 'Unsaved'
+                    : lastSavedAt
+                      ? `Saved at ${formatClock(lastSavedAt)}`
+                      : ''}
+              </span>
             </div>
             <textarea
               className="reports-editor-textarea"

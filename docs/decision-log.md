@@ -1024,3 +1024,73 @@ the early access phase, revisit before broader distribution.
 
 Follow-up: Cut the first tagged release (`v0.1.1` or higher) and
 verify the auto-updater flow on a packaged build.
+
+## Public Repo License: MIT
+
+Decision: License QuarterlineV2 under MIT.
+
+Date: 2026-05-09
+
+Owner: Project Owner (delegated to chief implementation agent)
+
+Context: M9 Phase 3b made the GitHub repo public. Public source
+needs an explicit license — without one, the default is
+"all rights reserved" and outside contributors / redistributors
+have no legal basis to use the code. The project owner asked the
+chief implementation agent to make the call.
+
+Decision made: MIT License. `LICENSE` at repo root, `package.json`
+license field set to `MIT`.
+
+Reasoning: MIT is the simplest permissive license, widely
+understood, requires only attribution, and imposes no patent or
+copyleft constraints that could complicate future commercial
+distribution. It mirrors what most Electron / React desktop OSS
+ships under.
+
+Risks: MIT does not include an explicit patent grant (Apache 2.0
+does). For a CRE app at MVP stage this is acceptable; if patentable
+methods land later, revisit the choice.
+
+Follow-up: If a contributor asks about licensing or wants to fork,
+the LICENSE file is canonical.
+
+## Continuous Integration on GitHub Actions
+
+Decision: Run typecheck, lint, build, and smoke-test on every push
+to `main` and every PR via GitHub Actions.
+
+Date: 2026-05-09
+
+Owner: Chief Implementation Agent
+
+Context: The repo is now public; outside contributors (and future
+agent sessions) need an automated way to know whether a change is
+safe. The smoke-test runs an Electron-runtime data-layer
+verification (32/32 checks); pairing it with typecheck + lint +
+build catches the common breakage classes in CI.
+
+Decision made: `.github/workflows/ci.yml` runs on `ubuntu-latest`
+under `xvfb-run` (the smoke-test launches Electron, which needs a
+display). Steps: typecheck both tsconfigs, ESLint, electron-vite
+build, smoke-test.
+
+Reasoning: ubuntu-latest is the cheapest / fastest GitHub-hosted
+runner. better-sqlite3's native module rebuilds correctly under the
+postinstall hook (`electron-builder install-app-deps`). The smoke
+test is lightweight (~3 seconds) and exercises the same code paths
+that ship to production.
+
+Risks:
+- Linux-only CI doesn't catch Windows-specific regressions
+  (path-separator handling, NTFS case sensitivity). The smoke-test
+  uses `path.join` consistently so this is low-risk; revisit by
+  adding `windows-latest` to the matrix if Windows-specific bugs
+  surface.
+- Node.js native modules sometimes fail to rebuild against
+  Electron's Node version on first install. Mitigated by `npm ci`
+  + the postinstall hook.
+
+Follow-up: When the first packaged release ships, consider a
+release workflow that builds the NSIS installer on
+`windows-latest` and uploads it to GitHub Releases.

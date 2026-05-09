@@ -159,12 +159,15 @@ Landed:
 - Phase 3a (`3942f41`) — per-module ErrorBoundary on the Portfolio,
   `lastRoute` persistence, Ctrl+S in the Reports editor.
 - Phase 3b — GitHub publish stanza wired in `electron-builder.yml`
-  pointing at `kgr1115/QuarterlineV2`. First tagged release is
-  pending; see `NEXT_STEPS.md`.
+  pointing at `kgr1115/QuarterlineV2`; MIT LICENSE at repo root;
+  GitHub Actions CI runs typecheck/lint/build/smoke-test on every
+  push and PR to main; placeholder `build/icon.ico` rendered from
+  V1's brand identity (multi-resolution); Reports narrative editor
+  has 1.5s debounced auto-save with status indicator.
 
 Still pending under M9:
-- Drop `icon.ico` (256x256 multi-resolution) into `build/`.
-- Cut the first GitHub release and verify the auto-updater flow
-  end-to-end on a packaged build.
+- Cut the first tagged release (`v0.1.1` or higher) and verify the
+  auto-updater flow end-to-end on a packaged build.
+- Optional: extend CI matrix to include `windows-latest`.
 - Bundle code-splitting (echarts/leaflet) — speculative until a
   real workspace shows slowdown.

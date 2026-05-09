@@ -683,6 +683,18 @@ assets) is queued.
   wiring via `electron-updater` (guarded for dev / disabled state,
   publish stanza commented out in `electron-builder.yml` until a
   release pipeline is live).
+- Indexes: migration 0007 indexes the read-heavy paths (quarter,
+  property_id, ingestion_date).
+- Phase 3a: per-module ErrorBoundary on the Portfolio, lastRoute
+  persistence, Ctrl+S in the Reports editor.
+- Phase 3b: hosted at `kgr1115/QuarterlineV2` (public). MIT
+  LICENSE at repo root. GitHub Actions CI workflow runs typecheck,
+  lint, build, and smoke-test under xvfb on every push and PR to
+  main. Placeholder `build/icon.ico` (multi-resolution 16/24/32/
+  48/64/128/256) rendered from V1's brand identity by
+  `scripts/generate-icon.py`. Reports narrative editor: 1.5s
+  debounced auto-save with status indicator. Auto-update publish
+  stanza in `electron-builder.yml` now points at the public repo.
 
 Scope:
 

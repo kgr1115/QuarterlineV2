@@ -62,17 +62,26 @@ export to PDF via Electron's `printToPDF` into the workspace's
      - `lastRoute` persistence in app config so the app reopens to
        the route the user closed on.
      - Ctrl+S in the Reports editor to save the current narrative.
-   - Phase 3b (in flight):
+   - Phase 3b (landed 2026-05-09):
      - GitHub publish stanza wired in `electron-builder.yml`
        pointing at `kgr1115/QuarterlineV2` (public).
-     - Release pipeline — first tagged release pending (see
-       Immediate Priorities #1).
-     - Icon and installer artwork — drop `icon.ico` (256x256 multi-
-       resolution) into `build/`. Optional NSIS header.bmp +
-       sidebar.bmp.
-   - Performance — SQLite indexes landed 2026-05-09 (`7f74f52`).
-     Bundle code-splitting for echarts/leaflet remains; only
-     warranted after measurement on a large workspace.
+     - MIT license at repo root; `package.json` license field
+       updated.
+     - GitHub Actions CI — `.github/workflows/ci.yml` runs
+       typecheck, lint, build, and smoke-test under xvfb on every
+       push/PR to main.
+     - Placeholder `build/icon.ico` rendered from V1's brand
+       identity by `scripts/generate-icon.py` (multi-resolution
+       16/24/32/48/64/128/256). Optional NSIS header.bmp +
+       sidebar.bmp still welcome.
+     - Reports narrative editor: 1.5s debounced auto-save with
+       "Saved at HH:MM:SS" / "Saving…" / "Unsaved" status in the
+       editor metadata strip.
+   - Phase 3c (queued):
+     - First tagged release (see Immediate Priorities #1).
+     - Optional Windows CI matrix (currently Linux-only).
+     - Bundle code-splitting for echarts/leaflet — speculative
+       until measurement on a large workspace shows slowdown.
 
 ## Open Decisions Still to Resolve
 

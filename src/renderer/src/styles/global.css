@@ -830,6 +830,14 @@ body {
   color: var(--text-tertiary);
 }
 
+.reports-editor-savestate {
+  margin-left: auto;
+  font-family: var(--font-interface);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
 .reports-editor-textarea {
   flex: 1;
   min-height: 320px;

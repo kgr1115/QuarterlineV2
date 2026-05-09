@@ -24,7 +24,7 @@
     "smoke-test": "electron-vite build && electron out/main/smoke-test.js"
   },
   "author": "Kyle Rauch",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true,
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",
