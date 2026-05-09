@@ -29,17 +29,16 @@ function projectQuarters(baseQuarter: string, n: number): string[] {
   return out
 }
 
-function projectActual(baseRent: number, baseCapRate: number) {
-  return {
-    rent: Array.from({ length: QUARTERS_AHEAD + 1 }, (_, i) => {
-      const t = i / 4
-      return Number((baseRent * Math.pow(1.012, t)).toFixed(2))
-    }),
-    capRate: Array.from({ length: QUARTERS_AHEAD + 1 }, () => baseCapRate),
-    noiIndex: Array.from({ length: QUARTERS_AHEAD + 1 }, (_, i) => {
-      return Number((100 * Math.pow(1.015, i / 4)).toFixed(2))
-    })
-  }
+function projectActual(baseRent: number) {
+  const rent = Array.from({ length: QUARTERS_AHEAD + 1 }, (_, i) => {
+    const t = i / 4
+    return Number((baseRent * Math.pow(1.012, t)).toFixed(2))
+  })
+  const valueIndex = Array.from({ length: QUARTERS_AHEAD + 1 }, (_, i) => {
+    const t = i / 4
+    return Number((100 * Math.pow(1.015, t)).toFixed(1))
+  })
+  return { rent, valueIndex }
 }
 
 function projectSimulated(
@@ -50,24 +49,28 @@ function projectSimulated(
   const rentGrowth = inputs.rentGrowth_pct / 100
   const capRateShift = inputs.capRateShift_bps / 10000
   const rateShift = inputs.interestRateShift_bps / 10000
-  return {
-    rent: Array.from({ length: QUARTERS_AHEAD + 1 }, (_, i) => {
-      const t = i / 4
-      const baseTrend = Math.pow(1.012, t)
-      const scenarioTrend = Math.pow(1 + rentGrowth, t)
-      return Number((baseRent * baseTrend * scenarioTrend).toFixed(2))
-    }),
-    capRate: Array.from({ length: QUARTERS_AHEAD + 1 }, (_, i) => {
-      const t = i / 4
-      const drift = capRateShift * Math.min(1, t)
-      return Number(((baseCapRate + drift) * 100).toFixed(2))
-    }),
-    noiIndex: Array.from({ length: QUARTERS_AHEAD + 1 }, (_, i) => {
-      const t = i / 4
-      const compounded = Math.pow(1.015 + rentGrowth - rateShift * 0.4, t)
-      return Number((100 * compounded).toFixed(2))
-    })
-  }
+
+  const rent = Array.from({ length: QUARTERS_AHEAD + 1 }, (_, i) => {
+    const t = i / 4
+    const baseTrend = Math.pow(1.012, t)
+    const scenarioTrend = Math.pow(1 + rentGrowth, t)
+    return Number((baseRent * baseTrend * scenarioTrend).toFixed(2))
+  })
+
+  // Implied value index combines all three drivers:
+  //   - rent growth lifts top-line revenue
+  //   - cap rate widening compresses asset value (NOI / cap rate)
+  //   - higher rates drag value via debt service / discount-rate pressure
+  const valueIndex = Array.from({ length: QUARTERS_AHEAD + 1 }, (_, i) => {
+    const t = i / 4
+    const baseTrend = Math.pow(1.015, t)
+    const rentLift = Math.pow(1 + rentGrowth, t)
+    const capCompression = baseCapRate / (baseCapRate + capRateShift)
+    const rateDrag = Math.max(0.5, 1 - 0.6 * rateShift * t)
+    return Number((100 * baseTrend * rentLift * capCompression * rateDrag).toFixed(1))
+  })
+
+  return { rent, valueIndex }
 }
 
 export function ScenarioControls() {
@@ -120,10 +123,7 @@ export function ScenarioControls() {
   )
 
   const baseCapRate = 0.07
-  const actual = useMemo(
-    () => projectActual(baseRent, baseCapRate),
-    [baseRent]
-  )
+  const actual = useMemo(() => projectActual(baseRent), [baseRent])
   const simulated = useMemo(
     () =>
       projectSimulated(baseRent, baseCapRate, {
@@ -138,7 +138,7 @@ export function ScenarioControls() {
   const option = useMemo(
     () => ({
       backgroundColor: 'transparent',
-      grid: { left: 50, right: 16, top: 32, bottom: 36 },
+      grid: { left: 56, right: 56, top: 32, bottom: 36 },
       legend: {
         textStyle: { color: '#94a3b8', fontSize: 11 },
         top: 4,
@@ -151,7 +151,9 @@ export function ScenarioControls() {
         trigger: 'axis',
         backgroundColor: '#1e293b',
         borderColor: '#334155',
-        textStyle: { color: '#f8fafc', fontSize: 12 }
+        textStyle: { color: '#f8fafc', fontSize: 12 },
+        valueFormatter: (v: number, _i: number) =>
+          typeof v === 'number' ? v.toFixed(2) : String(v)
       },
       xAxis: {
         type: 'category',
@@ -164,22 +166,37 @@ export function ScenarioControls() {
           rotate: labels.length > 6 ? 30 : 0
         }
       },
-      yAxis: {
-        type: 'value',
-        name: '$/SF',
-        nameTextStyle: { color: '#64748b', fontSize: 10 },
-        axisLine: { show: false },
-        splitLine: { lineStyle: { color: '#1e293b' } },
-        axisLabel: {
-          color: '#64748b',
-          fontSize: 10,
-          formatter: (v: number) => `$${v.toFixed(0)}`
+      yAxis: [
+        {
+          type: 'value',
+          name: '$/SF',
+          nameTextStyle: { color: '#64748b', fontSize: 10 },
+          axisLine: { show: false },
+          splitLine: { lineStyle: { color: '#1e293b' } },
+          axisLabel: {
+            color: '#64748b',
+            fontSize: 10,
+            formatter: (v: number) => `$${v.toFixed(0)}`
+          }
+        },
+        {
+          type: 'value',
+          name: 'Value Index',
+          nameTextStyle: { color: '#64748b', fontSize: 10 },
+          axisLine: { show: false },
+          splitLine: { show: false },
+          axisLabel: {
+            color: '#64748b',
+            fontSize: 10,
+            formatter: (v: number) => v.toFixed(0)
+          }
         }
-      },
+      ],
       series: [
         {
           name: 'Actual asking rate',
           type: 'line',
+          yAxisIndex: 0,
           smooth: true,
           data: actual.rent,
           lineStyle: { color: '#94a3b8', width: 2, type: 'dashed' },
@@ -189,6 +206,7 @@ export function ScenarioControls() {
         {
           name: 'Simulated asking rate',
           type: 'line',
+          yAxisIndex: 0,
           smooth: true,
           data: simulated.rent,
           lineStyle: { color: '#6366f1', width: 2.5 },
@@ -207,6 +225,16 @@ export function ScenarioControls() {
               ]
             }
           }
+        },
+        {
+          name: 'Implied value index',
+          type: 'line',
+          yAxisIndex: 1,
+          smooth: true,
+          data: simulated.valueIndex,
+          lineStyle: { color: '#d946ef', width: 2.5 },
+          itemStyle: { color: '#d946ef' },
+          symbolSize: 6
         }
       ]
     }),
