@@ -551,10 +551,154 @@ body {
 /* Reports view */
 .reports-view {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.reports-body {
+  flex: 1;
   display: grid;
   grid-template-columns: 280px 1fr;
   overflow: hidden;
   min-height: 0;
+}
+
+.reports-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  flex-wrap: wrap;
+}
+
+.reports-header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.reports-header-eyebrow {
+  font-family: var(--font-interface);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.reports-header-title {
+  margin: 0;
+  font-family: var(--font-interface);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reports-header-workflow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-interface);
+  font-size: 11px;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.reports-step {
+  white-space: nowrap;
+}
+
+.reports-step-sep {
+  color: var(--text-tertiary);
+  user-select: none;
+}
+
+.reports-help-toggle {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-interface);
+  font-size: 11px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.reports-help-toggle:hover {
+  color: var(--text-primary);
+  border-color: var(--text-tertiary);
+}
+
+.reports-help-toggle:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.reports-help-panel {
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface-raised);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.reports-help-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+
+.reports-help-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  color: var(--text-primary);
+  font-family: var(--font-interface);
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+
+.reports-help-step-title {
+  font-family: var(--font-interface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.reports-help-step-body {
+  font-family: var(--font-interface);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.reports-help-step-body code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-primary);
+  background: var(--bg-input);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.reports-help-foot {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .reports-empty {

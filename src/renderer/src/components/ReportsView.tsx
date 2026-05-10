@@ -19,6 +19,8 @@ function formatClock(date: Date): string {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
+const HELP_DISMISSED_KEY = 'quarterline.reports.helpDismissed'
+
 export function ReportsView() {
   const { current } = useWorkspace()
   const [sections, setSections] = useState<ReportSection[]>([])
@@ -38,7 +40,36 @@ export function ReportsView() {
   const [aiConfigured, setAiConfigured] = useState(false)
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
   const [autoSaving, setAutoSaving] = useState(false)
+  const [helpOpen, setHelpOpen] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(HELP_DISMISSED_KEY) !== '1'
+    } catch {
+      return true
+    }
+  })
   const autoSaveTimer = useRef<number | null>(null)
+
+  const reportTitle = current
+    ? `${current.currentQuarter} ${current.market} ${current.propertyType} Market Report`
+    : 'Quarterly Report'
+
+  const dismissHelp = (): void => {
+    setHelpOpen(false)
+    try {
+      localStorage.setItem(HELP_DISMISSED_KEY, '1')
+    } catch {
+      // ignore
+    }
+  }
+
+  const showHelp = (): void => {
+    setHelpOpen(true)
+    try {
+      localStorage.removeItem(HELP_DISMISSED_KEY)
+    } catch {
+      // ignore
+    }
+  }
 
   const refresh = useCallback(async () => {
     if (!current) {
@@ -269,9 +300,92 @@ export function ReportsView() {
 
   return (
     <div className="reports-view">
+      <header className="reports-header">
+        <div className="reports-header-titles">
+          <div className="reports-header-eyebrow">Quarterly Report</div>
+          <h1 className="reports-header-title">{reportTitle}</h1>
+        </div>
+        <div className="reports-header-workflow" aria-label="Report workflow">
+          <span className="reports-step">1. Pin evidence</span>
+          <span className="reports-step-sep">→</span>
+          <span className="reports-step">2. Edit narratives</span>
+          <span className="reports-step-sep">→</span>
+          <span className="reports-step">3. Preview</span>
+          <span className="reports-step-sep">→</span>
+          <span className="reports-step">4. Export PDF</span>
+        </div>
+        {!helpOpen && (
+          <button
+            type="button"
+            className="reports-help-toggle"
+            onClick={showHelp}
+            aria-expanded={helpOpen}
+          >
+            ? How this works
+          </button>
+        )}
+      </header>
+
+      {helpOpen && (
+        <section className="reports-help-panel" aria-label="How report assembly works">
+          <div className="reports-help-grid">
+            <div>
+              <div className="reports-help-step-num">1</div>
+              <div className="reports-help-step-title">Pin evidence on Portfolio</div>
+              <div className="reports-help-step-body">
+                On the Portfolio tab, click the pin (◯ → ◉) on synthesis cards,
+                the financial table, or a saved scenario. Pinned items appear on
+                the report cover and as exhibits.
+              </div>
+            </div>
+            <div>
+              <div className="reports-help-step-num">2</div>
+              <div className="reports-help-step-title">Edit narratives here</div>
+              <div className="reports-help-step-body">
+                Pick a section in the left sidebar. Write markdown in the editor
+                — auto-saves 1.5s after the last keystroke (Ctrl+S to force).
+                With an AI key configured, click <strong>✦ Generate with AI</strong>
+                to draft from your imported workspace data. External tools
+                (Claude Desktop, Codex) can also write to the section file
+                directly under <code>{'<workspace>/narratives/'}</code>.
+              </div>
+            </div>
+            <div>
+              <div className="reports-help-step-num">3</div>
+              <div className="reports-help-step-title">Reorder &amp; include</div>
+              <div className="reports-help-step-body">
+                Use ↑ / ↓ to reorder sections. Toggle ◉ / ○ in the sidebar to
+                include or skip a section. Add custom sections with the + button.
+              </div>
+            </div>
+            <div>
+              <div className="reports-help-step-num">4</div>
+              <div className="reports-help-step-title">Preview &amp; export</div>
+              <div className="reports-help-step-body">
+                Switch to the <strong>Preview</strong> tab to see the assembled
+                report (cover page + key metrics + pinned cards + section
+                narratives + statistics tables). Click <strong>Export PDF</strong>
+                to write to <code>{'<workspace>/exports/'}</code>; the file
+                appears in <em>Recent exports</em> at the bottom of the sidebar.
+              </div>
+            </div>
+          </div>
+          <div className="reports-help-foot">
+            <button
+              type="button"
+              className="dialog-btn dialog-btn-secondary"
+              onClick={dismissHelp}
+            >
+              Got it — hide this
+            </button>
+          </div>
+        </section>
+      )}
+
+      <div className="reports-body">
       <aside className="reports-sidebar">
         <div className="reports-sidebar-header">
-          <span>Sections</span>
+          <span>Sections of this report</span>
           <button
             type="button"
             className="reports-icon-btn"
@@ -507,6 +621,7 @@ export function ReportsView() {
             )}
           </div>
         )}
+      </div>
       </div>
     </div>
   )
